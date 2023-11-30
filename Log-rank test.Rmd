@@ -1,0 +1,142 @@
+---
+title: "Log-rank Test"
+author: "Zhezheng Jin"
+date: "2023-11-30"
+output: html_document
+---
+
+```{r setup}
+library(survival)
+library(cmprsk)
+rotterdam
+write.csv(rotterdam, file = "C:/Users/11350/Desktop/Data Science I/P8108_final_report/rotterdam.csv")
+```
+
+## Log-rank test (death as event) comparing hormonal treatment
+```{r}
+surv_obj1 <- Surv(time = rotterdam$dtime, event = rotterdam$death)
+
+log_rank_test_hormon1 <- survdiff(surv_obj1 ~ hormon, data = rotterdam)
+
+print(log_rank_test_hormon1)
+```
+
+Groups Compared: The test compared survival times between two groups: hormon=0 and hormon=1.
+
+Number of Subjects (N): There were 2,643 subjects in the hormon=0 group and 339 subjects in the hormon=1 group.
+
+Observed Deaths: In the hormon=0 group, there were 1,113 observed deaths, whereas in the hormon=1 group, there were 159 observed deaths.
+
+Expected Deaths: 1,162 deaths were expected in the hormon=0 group and 110 in the hormon=1 group.
+
+The p-value of 1e-06 suggests that there is a statistically significant difference in survival between the two hormone treatment groups.
+The very low p-value (much less than 0.05) leads us to reject the null hypothesis of no difference in survival between the two groups.
+The result indicates that hormone treatment status (hormon) is strongly associated with differences in survival outcomes in the dataset. Specifically, the observed number of events in each group significantly deviates from what would be expected if there were no difference in survival between the groups.
+
+## Log-rank test (recurrence as event) comparing hormonal treatment
+```{r}
+surv_obj2 <- Surv(time = rotterdam$rtime, event = rotterdam$recur)
+
+log_rank_test_hormon2 <- survdiff(surv_obj2 ~ hormon, data = rotterdam)
+
+print(log_rank_test_hormon2)
+```
+
+Number of Subjects (N): There were 2,643 subjects in the hormon=0 group and 339 subjects in the hormon=1 group.
+
+Observed Events (Recurrences):
+
+In the hormon=0 group, there were 1,336 observed events (recurrences).
+In the hormon=1 group, there were 182 observed events.
+
+Expected Events: 
+
+1,371 in the hormon=0 group.
+147 in the hormon=1 group.
+
+The p-value of 0.002 suggests that there is a statistically significant difference in the recurrence rate between the two hormone treatment groups.
+Given that the p-value is less than 0.05, we reject the null hypothesis of no difference in recurrence rates between the two groups.
+The result indicates that hormone treatment status (hormon) is associated with a difference in recurrence rates in the dataset. Specifically, the observed number of recurrences in each group deviates from what would be expected if there were no difference in recurrence rates between the groups.
+
+## Log-rank test (combine both as event) comparing hormonal treatment
+```{r}
+rfs  <- pmax(rotterdam$recur, rotterdam$death)
+rfstime <- with(rotterdam, ifelse(recur==1, rtime, dtime))
+surv_obj3 <- Surv(time = rfstime, event = rfs)
+log_rank_test_hormon3 <- survdiff(surv_obj3 ~ hormon, data = rotterdam)
+
+print(log_rank_test_hormon3)
+```
+
+Observed Events:
+
+In the hormon=0 group, there were 1,507 observed events.
+In the hormon=1 group, there were 206 observed events.
+
+Expected Events:
+
+hormon=0: 1,551 events were expected.
+hormon=1: 162 events were expected.
+
+The p-value of 0.0003 suggests that there is a statistically significant difference in survival between the two hormone treatment groups.
+The very low p-value (much less than 0.05) leads us to reject the null hypothesis of no difference in survival between the two groups.
+The result indicates that hormone treatment status (hormon) is strongly associated with differences in survival outcomes in the dataset, when considering both recurrence and death as the events of interest. Specifically, the observed number of events in each group significantly deviates from what would be expected if there were no difference in survival between the groups.
+
+## Stratified log-rank test (combine both as event) comparing hormonal treatment stratified by chemotherapy
+```{r}
+stratified_log_rank_test <- survdiff(surv_obj3 ~ hormon + strata(chemo), data = rotterdam)
+
+print(stratified_log_rank_test)
+```
+
+Stratification: The test was stratified by the chemo variable, meaning the analysis was conducted separately within each chemotherapy status group, but the overall test combines these analyses.
+
+Observed Deaths:
+
+In the hormon=0 group, there were 1507 observed deaths.
+In the hormon=1 group, there were 206 observed deaths.
+
+Expected Deaths: 
+
+1553 in the hormon=0 group.
+160 in the hormon=1 group.
+
+The p-value of 0.0001 suggests that there is a statistically significant difference in survival between the two hormone treatment groups when stratified by chemotherapy status.
+The very low p-value (much less than 0.05) leads us to reject the null hypothesis of no difference in survival between the two groups within each stratum of chemotherapy status.
+This result indicates that hormone treatment status (hormon) is strongly associated with differences in the combined outcomes of recurrence or death, and this association holds true even when accounting for whether patients received chemotherapy or not.
+
+## Fine and Gray’s Competing Risks Model: Comparing the risk of death and recurrence
+```{r}
+# Create a combined event variable
+# Event codes: 1 for relapse, 2 for death, 0 for censored
+rotterdam$event_type <- with(rotterdam, ifelse(recur == 1, 1, ifelse(death == 1, 2, 0)))
+
+# Define the time to event or censoring
+# Use the minimum of rtime and dtime for each patient
+rotterdam$time_to_event <- pmin(rotterdam$rtime, rotterdam$dtime)
+
+# Calculate cumulative incidence functions for each event
+cif <- cuminc(ftime = rotterdam$time_to_event, fstatus = rotterdam$event_type, group = rotterdam$hormon)
+
+# Plot the cumulative incidence functions
+plot(cif)
+
+# Fit the Fine and Gray model for a specific event, e.g., relapse
+fg_model_relapse <- crr(ftime = rotterdam$time_to_event, fstatus = rotterdam$event_type, cov1 = rotterdam$hormon, failcode = 1)
+
+# Fit the Fine and Gray model for another event, e.g., death
+fg_model_death <- crr(ftime = rotterdam$time_to_event, fstatus = rotterdam$event_type, cov1 = rotterdam$hormon, failcode = 2)
+
+# View the results for relapse
+summary(fg_model_relapse)
+
+# View the results for death
+summary(fg_model_death)
+```
+
+For the risk of relapse (fg_model_relapse), the model shows a statistically significant effect of hormone treatment. The coefficient for hormone treatment (rotterdam$hormon1) is 0.205, with an exponentiated coefficient (hazard ratio) of 1.23. This suggests that the subdistribution hazard of relapse is 23% higher in the hormone treatment group compared to the non-treatment group, with a p-value of 0.0091, indicating statistical significance.
+
+In contrast, for the risk of death (fg_model_death), the effect of hormone treatment is not statistically significant. The coefficient is 0.207 with an exponentiated coefficient of 1.23, but the p-value is 0.34, suggesting that the observed difference in the risk of death between the hormone treatment and non-treatment groups could be due to random chance.
+
+In summary, hormone treatment appears to be significantly associated with an increased risk of relapse, but it does not show a statistically significant association with the risk of death when considering these events as competing risks.
+
