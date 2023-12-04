@@ -2,7 +2,106 @@
 title: "K-M estimation part"
 author: "Zhezheng Jin"
 date: "2023-11-28"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 ---
+```{r setup, include=FALSE}
+library(survival)
+library(dplyr)
+```
+
+## discription in two treatment
+
+```{r}
+head(rotterdam)
+Rotterdam=data.frame(rotterdam)
+summary(Rotterdam)
+str(Rotterdam)
+description_table <- data.frame(
+  Characteristic = c("age24-45", "age46-65", "meno=1", 
+                     "size<=20", "size20-50", "grade=2", 
+                     "nodes<4", "pgr<200", "er<200", "chemo=1"),
+  Overall = c(
+    sum(Rotterdam$age >= 24 & Rotterdam$age <= 45),
+    sum(Rotterdam$age > 45 & Rotterdam$age <= 65),
+    sum(Rotterdam$meno == 1),
+    sum(Rotterdam$size=="<=20"),
+    sum(Rotterdam$size =="20-50"),
+    sum(Rotterdam$grade == 2),
+    sum(Rotterdam$nodes < 4),
+    sum(Rotterdam$pgr < 200),
+    sum(Rotterdam$er < 200),
+    sum(Rotterdam$chemo == 1)
+  ),
+  Treat0 = c(
+    sum(Rotterdam$age >= 24 & Rotterdam$age <= 45 & Rotterdam$hormon == 0),
+    sum(Rotterdam$age > 45 & Rotterdam$age <= 65 & Rotterdam$hormon == 0),
+    sum(Rotterdam$meno == 1 & Rotterdam$hormon == 0),
+    sum(Rotterdam$size=="<=20" & Rotterdam$hormon == 0),
+    sum(Rotterdam$size =="20-50" & Rotterdam$hormon == 0),
+    sum(Rotterdam$grade == 2 & Rotterdam$hormon == 0),
+    sum(Rotterdam$nodes < 4 & Rotterdam$hormon == 0),
+    sum(Rotterdam$pgr < 200 & Rotterdam$hormon == 0),
+    sum(Rotterdam$er < 200 & Rotterdam$hormon == 0),
+    sum(Rotterdam$chemo == 1 & Rotterdam$hormon == 0)
+  ),
+  Treat1 = c(
+    sum(Rotterdam$age >= 24 & Rotterdam$age <= 45 & Rotterdam$hormon == 1),
+    sum(Rotterdam$age > 45 & Rotterdam$age <= 65 & Rotterdam$hormon == 1),
+    sum(Rotterdam$meno == 1 & Rotterdam$hormon == 1),
+    sum(Rotterdam$size=="<=20" & Rotterdam$hormon == 1),
+    sum(Rotterdam$size =="20-50"& Rotterdam$hormon == 1),
+    sum(Rotterdam$grade == 2 & Rotterdam$hormon == 1),
+    sum(Rotterdam$nodes < 4 & Rotterdam$hormon == 1),
+    sum(Rotterdam$pgr < 200 & Rotterdam$hormon == 1),
+    sum(Rotterdam$er < 200 & Rotterdam$hormon == 1),
+    sum(Rotterdam$chemo == 1 & Rotterdam$hormon == 1)
+  )
+)
+
+print(description_table)
+```
+
+## summary of variables
+
+```{r}
+char_table <- data.frame(
+  Characteristic = c("year", "age", "meno", "grade", "nodes", "pgr", "er", "hormon", "chemo", "rtime", "recur", "dtime", "death"),
+  Mean = NA,
+  Median = NA,
+  Min = NA,
+  Max = NA,
+  Sd = NA
+)
 
 
+for (i in 1:nrow(char_table)) {
+  var_name <- char_table$Characteristic[i]
+  char_table$Mean[i] <- mean(Rotterdam[[var_name]], na.rm = TRUE)
+  char_table$Median[i] <- median(Rotterdam[[var_name]], na.rm = TRUE)
+  char_table$Min[i] <- min(Rotterdam[[var_name]], na.rm = TRUE)
+  char_table$Max[i] <- max(Rotterdam[[var_name]], na.rm = TRUE)
+  char_table$Sd[i] <- sd(Rotterdam[[var_name]], na.rm = TRUE)
+}
+
+char_table
+```
+
+## KM estimation
+
+```{r}
+status  <- pmax(rotterdam$recur, rotterdam$death)
+rfstime <- with(rotterdam, ifelse(recur==1, rtime, dtime))
+fit1 <- coxph(Surv(rfstime, status) ~ pspline(age) + meno + size + 
+        pspline(nodes) + er,
+     data=rotterdam, subset = (nodes > 0))
+summary(fit1)
+fit1_surv <- survfit(fit1)
+
+# 绘制Kaplan-Meier估计图
+plot(fit1_surv, main = "Kaplan-Meier Estimate", xlab = "Time", ylab = "Survival Probability")
+```
+
+The total number of subjects observed was 1546, among which 1080 experienced the event of interest
+We can see from the Chisq and p-values here suggest that the non-linear relationships of these variables are significant. 
