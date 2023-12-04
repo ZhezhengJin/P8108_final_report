@@ -105,38 +105,4 @@ The p-value of 0.0001 suggests that there is a statistically significant differe
 The very low p-value (much less than 0.05) leads us to reject the null hypothesis of no difference in survival between the two groups within each stratum of chemotherapy status.
 This result indicates that hormone treatment status (hormon) is strongly associated with differences in the combined outcomes of recurrence or death, and this association holds true even when accounting for whether patients received chemotherapy or not.
 
-## Fine and Gray’s Competing Risks Model: Comparing the risk of death and recurrence
-```{r}
-# Create a combined event variable
-# Event codes: 1 for relapse, 2 for death, 0 for censored
-rotterdam$event_type <- with(rotterdam, ifelse(recur == 1, 1, ifelse(death == 1, 2, 0)))
-
-# Define the time to event or censoring
-# Use the minimum of rtime and dtime for each patient
-rotterdam$time_to_event <- pmin(rotterdam$rtime, rotterdam$dtime)
-
-# Calculate cumulative incidence functions for each event
-cif <- cuminc(ftime = rotterdam$time_to_event, fstatus = rotterdam$event_type, group = rotterdam$hormon)
-
-# Plot the cumulative incidence functions
-plot(cif)
-
-# Fit the Fine and Gray model for a specific event, e.g., relapse
-fg_model_relapse <- crr(ftime = rotterdam$time_to_event, fstatus = rotterdam$event_type, cov1 = rotterdam$hormon, failcode = 1)
-
-# Fit the Fine and Gray model for another event, e.g., death
-fg_model_death <- crr(ftime = rotterdam$time_to_event, fstatus = rotterdam$event_type, cov1 = rotterdam$hormon, failcode = 2)
-
-# View the results for relapse
-summary(fg_model_relapse)
-
-# View the results for death
-summary(fg_model_death)
-```
-
-For the risk of relapse (fg_model_relapse), the model shows a statistically significant effect of hormone treatment. The coefficient for hormone treatment (rotterdam$hormon1) is 0.205, with an exponentiated coefficient (hazard ratio) of 1.23. This suggests that the subdistribution hazard of relapse is 23% higher in the hormone treatment group compared to the non-treatment group, with a p-value of 0.0091, indicating statistical significance.
-
-In contrast, for the risk of death (fg_model_death), the effect of hormone treatment is not statistically significant. The coefficient is 0.207 with an exponentiated coefficient of 1.23, but the p-value is 0.34, suggesting that the observed difference in the risk of death between the hormone treatment and non-treatment groups could be due to random chance.
-
-In summary, hormone treatment appears to be significantly associated with an increased risk of relapse, but it does not show a statistically significant association with the risk of death when considering these events as competing risks.
 
