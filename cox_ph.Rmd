@@ -6,7 +6,7 @@ date: "2023-11-28"
 
 ```{r}
 library(survival)
-library(StepReg)
+library(MASS)
 head(rotterdam)
 ```
 
@@ -16,24 +16,29 @@ rfs  <- pmax(rotterdam$recur, rotterdam$death)
 rfstime <- with(rotterdam, ifelse(recur==1, rtime, dtime))
 rotterdam$tstart = c(rep(0,2982))
 surv_object <- with(rotterdam, Surv(tstart, rfstime, rfs)) #with consideration of time-varying covariates
-fit1 <- coxph(surv_object ~ pspline(age) + size + grade + nodes + pgr + er + hormon + chemo, data = rotterdam)
-fit2 <- coxph(Surv(rfstime, rfs)~ pspline(age) + size + grade + nodes + pgr + er + hormon + chemo, data = rotterdam)
-summary(fit1)
-summary(fit2)
 ```
 
 ```{r}
 # Fit a basic Cox proportional hazards model
-cox_model <- stepwiseCox(Surv(rfstime, rfs) ~ age + size + grade + nodes + pgr + er + hormon + chemo, data = rotterdam)
-summary(cox_model)
-```
-
-```{r}
+cox_model <- coxph(Surv(rfstime, rfs) ~ age + size + grade + nodes + pgr + er + hormon + chemo, data = rotterdam)
 # Checking the Proportional Hazards assumption
-cox.zph_model <- cox.zph(fit1)
+cox.zph_model <- cox.zph(cox_model)
 plot(cox.zph_model)
 
 ```
+
+```{r}
+
+```
+
+```{r}
+fit1 <- coxph(surv_object ~ pspline(age) + size + grade + nodes + pgr + er + hormon + chemo, data = rotterdam)
+summary(fit1)
+stepwise_model <- stepAIC(fit1, direction = "both", trace = FALSE)
+summary(stepwise_model)
+```
+
+
 Age: The residuals for age do not show a clear trend over time, suggesting that age satisfies the proportional hazards assumption.
 
 Size: Similar to age, the plot for size does not indicate any systematic trend, indicating no violation of the proportional hazards assumption.
