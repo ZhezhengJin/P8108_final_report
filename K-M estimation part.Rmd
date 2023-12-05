@@ -3,8 +3,7 @@ title: "K-M estimation part"
 author: "Zhezheng Jin"
 date: "2023-11-28"
 output:
-  html_document:
-    df_print: paged
+  github_document
 ---
 ```{r setup, include=FALSE}
 library(survival)

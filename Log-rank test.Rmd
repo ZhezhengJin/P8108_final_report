@@ -7,7 +7,6 @@ output: html_document
 
 ```{r setup}
 library(survival)
-library(cmprsk)
 rotterdam
 write.csv(rotterdam, file = "C:/Users/11350/Desktop/Data Science I/P8108_final_report/rotterdam.csv")
 ```
