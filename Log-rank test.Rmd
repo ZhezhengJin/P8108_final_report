@@ -2,13 +2,12 @@
 title: "Log-rank Test"
 author: "Zhezheng Jin"
 date: "2023-11-30"
-output: html_document
+output: github_document
 ---
 
 ```{r setup}
 library(survival)
 rotterdam
-write.csv(rotterdam, file = "C:/Users/11350/Desktop/Data Science I/P8108_final_report/rotterdam.csv")
 ```
 
 ## Log-rank test (death as event) comparing hormonal treatment
