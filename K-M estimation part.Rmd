@@ -101,6 +101,20 @@ fit1_surv <- survfit(fit1)
 
 # 绘制Kaplan-Meier估计图
 plot(fit1_surv, main = "Kaplan-Meier Estimate", xlab = "Time", ylab = "Survival Probability")
+
+
+surv_obj <- Surv(time = rfstime, event = status)
+
+# 进行Kaplan-Meier生存估计
+km_fit <- survfit(surv_obj ~ 1)
+summary(km_fit)
+# 输出结果
+print(km_fit)
+
+# 绘制生存曲线
+plot(km_fit, main = "Kaplan-Meier Survival Curve", xlab = "Time", ylab = "Survival Probability")
+
+
 ```
 
 The total number of subjects observed was 1546, among which 1080 experienced the event of interest
