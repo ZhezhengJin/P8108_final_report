@@ -12,6 +12,8 @@ library(dplyr)
 library(ggplot2)
 library(survminer)
 library(gtsummary)
+library(kableExtra)
+library(gridExtra)
 ```
 
 ## discription in two treatment
@@ -19,11 +21,13 @@ library(gtsummary)
 ```{r}
 head(rotterdam)
 Rotterdam=data.frame(rotterdam)
+colSums(is.na(Rotterdam))
 stats <- Rotterdam %>% 
   mutate(
     treat = case_when(
       hormon == 0 ~ "Treat = 0",
-      hormon == 1 ~ "Treat = 1")) 
+      hormon == 1 ~ "Treat = 1"))%>% 
+  select(-pid, -hormon, -rtime, -recur, -dtime, -death)
 stats <- stats %>% 
   bind_rows(stats %>% 
               mutate(treat = "Overall"))
