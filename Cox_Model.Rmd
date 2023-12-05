@@ -1,0 +1,100 @@
+---
+title: "Cox Model"
+author: "Youlan Shen"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+library("survival")
+library(StepReg)
+library(tidyverse)
+library("readxl")
+library(ggsurvfit) # for better visualization
+library(survminer)
+library(dplyr)
+data(cancer, package = "survival")
+```
+
+## Cox Model Assumption Checking
+
+### checking if the proportional hazard assumption between two treatment groups 
+
+```{r}
+# data preprocessing
+head(rotterdam)
+# liberal definition of rfs (count later deaths)
+rotterdam <- rotterdam %>% 
+  mutate(rfs = pmax(recur, death),
+         rfstime = ifelse(recur == 1, rtime, dtime))
+```
+
+
+```{r}
+colon_survfit_log = survfit(Surv(log(rfstime + 1), rfs) ~ hormon, data = rotterdam)
+splots <- list()
+splots[[2]] <- ggsurvplot(colon_survfit_log, data = rotterdam, fun = "cloglog",
+                          risk.table = FALSE, xlab = "log(Time)", 
+                          ggtheme = theme_minimal(), xlim = c(3,10))
+splots[[2]]$plot + labs(title = "Log of Negative Log of Estimated Survival Function")
+```
+
+From the log-log graph, the lines for two treatment groups are not proportional to each other, therefore, the proportional hazard assumption violates.
+
+The line is close to a straight line with slope equal to 1, we could consider using exponential distribution.
+
+### trying stratified groups on size groups/age groups
+
+```{r}
+
+```
+
+### check continuous variables interaction with time
+
+```{r}
+# fit a entire cox model, find significant variables
+# er and meno, seems less significant
+fit1 <- coxph(Surv(rfstime, rfs) ~ age + meno + size + grade + nodes + pgr + er +
+                hormon + chemo, data = rotterdam)
+
+# change the data to variables with interaction with time
+# nodes become no significant, pgr and er more significant
+# except nodes, all other continuous variables have significant interaction with time
+rotterdam <- rotterdam %>% 
+  mutate(
+    aget = age * log(rfstime),
+    gradet = grade * log(rfstime),
+    nodest = nodes * log(rfstime),
+    pgrt = pgr * log(rfstime), 
+    ert = er * log(rfstime)
+)
+fit2 <- coxph(Surv(rfstime, rfs) ~ age + meno + size + grade + nodes + pgr + er +
+                hormon + chemo + aget + gradet + nodest + pgrt + ert, data = rotterdam)
+```
+
+### model fitting and plots
+
+```{r}
+# stepwise model
+model3 <- stepwiseCox(Surv(rfstime, rfs) ~ age + meno + size + grade + nodes + pgr + er +
+                hormon + chemo + aget + gradet + nodest + pgrt + ert, data = rotterdam, 
+            selection = "bidirection", select = "SL", method = "breslow", 
+            sle = 0.25, sls = 0.15)
+model3$`Selected Varaibles`
+fit3 <- coxph(Surv(rfstime, rfs) ~ gradet + grade	+ nodest + hormon + age	+ aget + size +
+                meno + ert + pgrt + pgr + er, data = rotterdam)
+```
+
+### observed and fitted plot/ fitted survival plot?
+
+```{r}
+
+```
+
+### model fit results
+
+```{r}
+summary(fit1)
+summary(fit2)
+summary(fit3)
+```
+
