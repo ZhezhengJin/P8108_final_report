@@ -9,6 +9,9 @@ output:
 ```{r setup, include=FALSE}
 library(survival)
 library(dplyr)
+library(ggplot2)
+library(survminer)
+library(gtsummary)
 ```
 
 ## discription in two treatment
@@ -16,51 +19,18 @@ library(dplyr)
 ```{r}
 head(rotterdam)
 Rotterdam=data.frame(rotterdam)
-summary(Rotterdam)
-str(Rotterdam)
-description_table <- data.frame(
-  Characteristic = c("age24-45", "age46-65", "meno=1", 
-                     "size<=20", "size20-50", "grade=2", 
-                     "nodes<4", "pgr<200", "er<200", "chemo=1"),
-  Overall = c(
-    sum(Rotterdam$age >= 24 & Rotterdam$age <= 45),
-    sum(Rotterdam$age > 45 & Rotterdam$age <= 65),
-    sum(Rotterdam$meno == 1),
-    sum(Rotterdam$size=="<=20"),
-    sum(Rotterdam$size =="20-50"),
-    sum(Rotterdam$grade == 2),
-    sum(Rotterdam$nodes < 4),
-    sum(Rotterdam$pgr < 200),
-    sum(Rotterdam$er < 200),
-    sum(Rotterdam$chemo == 1)
-  ),
-  Treat0 = c(
-    sum(Rotterdam$age >= 24 & Rotterdam$age <= 45 & Rotterdam$hormon == 0),
-    sum(Rotterdam$age > 45 & Rotterdam$age <= 65 & Rotterdam$hormon == 0),
-    sum(Rotterdam$meno == 1 & Rotterdam$hormon == 0),
-    sum(Rotterdam$size=="<=20" & Rotterdam$hormon == 0),
-    sum(Rotterdam$size =="20-50" & Rotterdam$hormon == 0),
-    sum(Rotterdam$grade == 2 & Rotterdam$hormon == 0),
-    sum(Rotterdam$nodes < 4 & Rotterdam$hormon == 0),
-    sum(Rotterdam$pgr < 200 & Rotterdam$hormon == 0),
-    sum(Rotterdam$er < 200 & Rotterdam$hormon == 0),
-    sum(Rotterdam$chemo == 1 & Rotterdam$hormon == 0)
-  ),
-  Treat1 = c(
-    sum(Rotterdam$age >= 24 & Rotterdam$age <= 45 & Rotterdam$hormon == 1),
-    sum(Rotterdam$age > 45 & Rotterdam$age <= 65 & Rotterdam$hormon == 1),
-    sum(Rotterdam$meno == 1 & Rotterdam$hormon == 1),
-    sum(Rotterdam$size=="<=20" & Rotterdam$hormon == 1),
-    sum(Rotterdam$size =="20-50"& Rotterdam$hormon == 1),
-    sum(Rotterdam$grade == 2 & Rotterdam$hormon == 1),
-    sum(Rotterdam$nodes < 4 & Rotterdam$hormon == 1),
-    sum(Rotterdam$pgr < 200 & Rotterdam$hormon == 1),
-    sum(Rotterdam$er < 200 & Rotterdam$hormon == 1),
-    sum(Rotterdam$chemo == 1 & Rotterdam$hormon == 1)
-  )
-)
-
-print(description_table)
+stats <- Rotterdam %>% 
+  mutate(
+    treat = case_when(
+      hormon == 0 ~ "Treat = 0",
+      hormon == 1 ~ "Treat = 1")) 
+stats <- stats %>% 
+  bind_rows(stats %>% 
+              mutate(treat = "Overall"))
+stats %>%
+  tbl_summary(by = treat) %>% 
+   modify_caption("**People Characteristics in the Study**") %>%
+  bold_labels()
 ```
 
 ## summary of variables
@@ -93,28 +63,35 @@ char_table
 ```{r}
 status  <- pmax(rotterdam$recur, rotterdam$death)
 rfstime <- with(rotterdam, ifelse(recur==1, rtime, dtime))
-fit1 <- coxph(Surv(rfstime, status) ~ pspline(age) + meno + size + 
-        pspline(nodes) + er,
-     data=rotterdam, subset = (nodes > 0))
-summary(fit1)
-fit1_surv <- survfit(fit1)
-
-# 绘制Kaplan-Meier估计图
-plot(fit1_surv, main = "Kaplan-Meier Estimate", xlab = "Time", ylab = "Survival Probability")
-
 
 surv_obj <- Surv(time = rfstime, event = status)
 
-# 进行Kaplan-Meier生存估计
-km_fit <- survfit(surv_obj ~ 1)
-summary(km_fit)
-# 输出结果
-print(km_fit)
+km_fit1 <- survfit(surv_obj ~ 1)
+ggsurvplot(km_fit1, data=  rotterdam,                  
+           pval = TRUE,                
+           conf.int = TRUE,           
+           risk.table = TRUE,          
+           ggtheme = theme_minimal(),  
+           palette = "Dark2",         
+           main = "Kaplan-Meier Survival Curve", 
+           xlab = "Time",              
+           ylab = "Survival Probability") 
+```
 
-# 绘制生存曲线
-plot(km_fit, main = "Kaplan-Meier Survival Curve", xlab = "Time", ylab = "Survival Probability")
+
+```{r}
+km_fit2 <- survfit(surv_obj ~ Rotterdam$hormon)
 
 
+ggsurvplot(km_fit2, data=  rotterdam,                  
+           pval = TRUE,                
+           conf.int = TRUE,           
+           risk.table = TRUE,          
+           ggtheme = theme_minimal(),  
+           palette = "Dark2",         
+           main = "Kaplan-Meier Survival Curve", 
+           xlab = "Time",              
+           ylab = "Survival Probability") 
 ```
 
 The total number of subjects observed was 1546, among which 1080 experienced the event of interest
