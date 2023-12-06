@@ -1,5 +1,5 @@
 ---
-title: "P8108 - Hormonal Treatment and Chemotherapy: Comparative Impact on Survival Rates of Breast Cancer"
+title: "P8108 - Hormonal Treatment: Impact on Survival Rates of Breast Cancer"
 author: "Zhezheng Jin, Mingkai Chen, Youlan Shen, Hongru Tang "
 date: "2023-12-11"
 output:
@@ -38,7 +38,7 @@ o If possible, mention the main results.
 # Background and Objectives
 
 Research Question:
-How effective are hormonal and chemotherapy treatments in improving survival rates?
+How effective is hormonal treatment in improving survival rates?
 
 o While this section is project-dependent, remember to include enough information so
 that the reader knows what your project is about. Briefly discuss the substantive field
