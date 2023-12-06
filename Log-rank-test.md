@@ -106,28 +106,6 @@ Specifically, the observed number of events in each group significantly
 deviates from what would be expected if there were no difference in
 survival between the groups.
 
-## Log-rank test (death as event) comparing chemotherapy
-
-``` r
-log_rank_test_chemo1 <- survdiff(surv_obj1 ~ chemo, data = rotterdam)
-
-print(log_rank_test_chemo1)
-```
-
-    ## Call:
-    ## survdiff(formula = surv_obj1 ~ chemo, data = rotterdam)
-    ## 
-    ##            N Observed Expected (O-E)^2/E (O-E)^2/V
-    ## chemo=0 2402     1014     1024    0.0963     0.495
-    ## chemo=1  580      258      248    0.3977     0.495
-    ## 
-    ##  Chisq= 0.5  on 1 degrees of freedom, p= 0.5
-
-The p-value of 0.5 suggests that there is not a statistically
-significant difference in survival between the two chemotherapy groups.
-The result indicates that chemotherapy (chemo) is weakly associated with
-differences in survival outcomes in the dataset.
-
 ## Log-rank test (recurrence as event) comparing hormonal treatment
 
 ``` r
@@ -156,32 +134,6 @@ associated with a difference in recurrence rates in the dataset.
 Specifically, the observed number of recurrences in each group deviates
 from what would be expected if there were no difference in recurrence
 rates between the groups.
-
-## Log-rank test (recurrence as event) comparing chemotherapy
-
-``` r
-log_rank_test_chemo2 <- survdiff(surv_obj2 ~ chemo, data = rotterdam)
-
-print(log_rank_test_chemo2)
-```
-
-    ## Call:
-    ## survdiff(formula = surv_obj2 ~ chemo, data = rotterdam)
-    ## 
-    ##            N Observed Expected (O-E)^2/E (O-E)^2/V
-    ## chemo=0 2402     1181     1224      1.53      7.91
-    ## chemo=1  580      337      294      6.37      7.91
-    ## 
-    ##  Chisq= 7.9  on 1 degrees of freedom, p= 0.005
-
-The p-value of 0.005 suggests that there is a statistically significant
-difference in the recurrence rate between the two chemotherapy groups.
-Given that the p-value is less than 0.05, we reject the null hypothesis
-of no difference in recurrence rates between the two groups. The result
-indicates thatchemotherapy (chemo) is associated with a difference in
-recurrence rates in the dataset. Specifically, the observed number of
-recurrences in each group deviates from what would be expected if there
-were no difference in recurrence rates between the groups.
 
 ## Log-rank test (combine both as event) comparing hormonal treatment
 
@@ -213,29 +165,6 @@ considering both recurrence and death as the events of interest.
 Specifically, the observed number of events in each group significantly
 deviates from what would be expected if there were no difference in
 survival between the groups.
-
-## Log-rank test (combine both as event) comparing chemotherapy
-
-``` r
-log_rank_test_chemo3 <- survdiff(surv_obj3 ~ chemo, data = rotterdam)
-
-print(log_rank_test_chemo3)
-```
-
-    ## Call:
-    ## survdiff(formula = surv_obj3 ~ chemo, data = rotterdam)
-    ## 
-    ##            N Observed Expected (O-E)^2/E (O-E)^2/V
-    ## chemo=0 2402     1369     1383     0.132     0.685
-    ## chemo=1  580      344      330     0.553     0.685
-    ## 
-    ##  Chisq= 0.7  on 1 degrees of freedom, p= 0.4
-
-The p-value of 0.4 suggests that there is not a statistically
-significant difference in survival between the two chemotherapy groups.
-The result indicates that chemotherapy (chemo) is weakly associated with
-differences in survival outcomes in the dataset, when considering both
-recurrence and death as the events of interest.
 
 ## Stratified log-rank test (combine both as event) comparing hormonal treatment stratified by chemotherapy
 
