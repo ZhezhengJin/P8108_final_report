@@ -35,7 +35,14 @@ splots <- list()
 splots[[2]] <- ggsurvplot(colon_survfit_log, data = rotterdam, fun = "cloglog",
                           risk.table = FALSE, xlab = "log(Time)", 
                           ggtheme = theme_minimal(), xlim = c(3,10))
-splots[[2]]$plot + labs(title = "Log of Negative Log of Estimated Survival Function")
+splots[[2]]$plot + labs(title = "Log of Negative Log of Estimated Survival Function-hormon")
+
+colon_survfit_log_2 = survfit(Surv(log(rfstime + 1), rfs) ~ grade, data = rotterdam)
+splots_2 <- list()
+splots_2[[2]] <- ggsurvplot(colon_survfit_log_2, data = rotterdam, fun = "cloglog",
+                          risk.table = FALSE, xlab = "log(Time)", 
+                          ggtheme = theme_minimal(), xlim = c(3,10))
+splots_2[[2]]$plot + labs(title = "Log of Negative Log of Estimated Survival Function-grade")
 ```
 
 From the log-log graph, the lines for two treatment groups are not proportional to each other, therefore, the proportional hazard assumption violates.

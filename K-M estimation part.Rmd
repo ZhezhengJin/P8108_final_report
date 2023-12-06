@@ -20,14 +20,15 @@ library(gridExtra)
 
 ```{r}
 head(rotterdam)
-Rotterdam=data.frame(rotterdam)
+Rotterdam=data.frame(survival::rotterdam)
 colSums(is.na(Rotterdam))
 stats <- Rotterdam %>% 
   mutate(
     treat = case_when(
       hormon == 0 ~ "Treat = 0",
       hormon == 1 ~ "Treat = 1"))%>% 
-  select(-pid, -hormon, -rtime, -recur, -dtime, -death)
+  dplyr::select(-pid, -hormon, -rtime, -recur, -dtime, -death)
+
 stats <- stats %>% 
   bind_rows(stats %>% 
               mutate(treat = "Overall"))
@@ -45,11 +46,11 @@ stats2 <- Rotterdam %>%
     treat = case_when(
       chemo == 0 ~ "Treat = 0",
       chemo == 1 ~ "Treat = 1"))%>% 
-  select(-pid, -chemo, -rtime, -recur, -dtime, -death)
-stats <- stats %>% 
-  bind_rows(stats %>% 
+  dplyr::select(-pid, -chemo, -rtime, -recur, -dtime, -death)
+stats2 <- stats2 %>% 
+  bind_rows(stats2 %>% 
               mutate(treat = "Overall"))
-stats %>%
+stats2 %>%
   tbl_summary(by = treat) %>% 
    modify_caption("**People Characteristics for Chemo Treatment**") %>%
   bold_labels()
@@ -64,6 +65,8 @@ rfstime <- with(rotterdam, ifelse(recur==1, rtime, dtime))
 surv_obj <- Surv(time = rfstime, event = status)
 
 km_fit1 <- survfit(surv_obj ~ 1)
+print(km_fit1)
+
 ggsurvplot(km_fit1, data=  rotterdam,                  
            pval = TRUE,                
            conf.int = TRUE,           
@@ -78,17 +81,54 @@ ggsurvplot(km_fit1, data=  rotterdam,
 
 ```{r}
 km_fit2 <- survfit(surv_obj ~ Rotterdam$hormon)
+print(km_fit2)
 
 
 ggsurvplot(km_fit2, data=  rotterdam,                  
            pval = TRUE,                
            conf.int = TRUE,           
-           risk.table = TRUE,          
            ggtheme = theme_minimal(),  
            palette = "Dark2",         
            main = "Kaplan-Meier Survival Curve", 
            xlab = "Time",              
            ylab = "Survival Probability") 
+ggsave(file = "K-M-estimation-part_files/KM1.jpg")
+```
+
+
+```{r}
+Rotterdam$status  <- pmax(rotterdam$recur, rotterdam$death)
+Rotterdam$rfstime <- with(rotterdam, ifelse(recur==1, rtime, dtime))
+
+rotterdam_1 <- Rotterdam%>%filter(hormon == 1)
+rotterdam_0 <- Rotterdam%>%filter(hormon == 0)
+
+km_fit3 <- survfit(Surv(rfstime, status) ~ rotterdam_0$chemo,data = rotterdam_0)
+print(km_fit3)
+km_fit4 <- survfit(Surv(rfstime, status) ~ rotterdam_1$chemo, data = rotterdam_1)
+print(km_fit4)
+```
+
+```{r}
+par(mfrow = c(2,2))
+ggsurvplot(km_fit3, data=  rotterdam_0,                  
+           conf.int = TRUE,           
+           ggtheme = theme_minimal(),  
+           palette = "Dark2",         
+           title  = "Kaplan-Meier Curve for Hormon = 0", 
+           xlab = "Time",              
+           ylab = "Survival Probability") 
+ggsave(file = "K-M-estimation-part_files/KM2.jpg")
+
+ggsurvplot(km_fit4, data=  rotterdam_1,                  
+           pval = TRUE,                
+           conf.int = TRUE,
+           ggtheme = theme_minimal(),  
+           palette = "Dark2",         
+           title = "Kaplan-Meier Curve for hormon = 1", 
+           xlab = "Time",              
+           ylab = "Survival Probability") 
+ggsave(file = "K-M-estimation-part_files/KM3.jpg")
 ```
 
 The total number of subjects observed was 1546, among which 1080 experienced the event of interest

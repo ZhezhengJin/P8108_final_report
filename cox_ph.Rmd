@@ -43,7 +43,7 @@ ggsave(file = "cox_ph_files/Schoenfeld.jpg")
 
 
 ```{r}
-fit1 <- coxph(surv_object ~ pspline(age) + size + grade + nodes + pgr + er + hormon + chemo, data = rotterdam)
+fit1 <- coxph(surv_object ~ age + size + strata(grade) + nodes + pgr + er + strata(hormon) + chemo, data = rotterdam)
 summary(fit1)
 stepwise_model <- stepAIC(fit1, direction = "both", trace = FALSE)
 summary(stepwise_model)
@@ -53,7 +53,7 @@ summary(stepwise_model)
 ## Cox Proportional Hazard Ratio Model:
 
 #### Proportional Hazard Checking:
-An initial Cox model was constructed including all mentioned covariates. The proportional hazards (PH) assumption, a critical assumption of the Cox model, was evaluated using Schoenfeld residuals. The plots for each covariate were examined (shown in figure ), and no clear trend over time was observed, suggesting that the PH assumption was reasonably met for all variables.
+An initial Cox model was constructed including all mentioned covariates. The proportional hazards (PH) assumption, a critical assumption of the Cox model, was evaluated using Schoenfeld residuals. The plots for each covariate were examined (shown in figure ), and no clear trend over time was observed except for hormon, suggesting that the PH assumption was reasonably met for all other variables. Therefore we only consider adjusting for hormon.
 
 #### Model fitting:
 The final model was selected using the stepwise AIC method with both forward and backward selection strategies. The stepwise selection process iteratively added or removed variables based on their impact on the Akaike Information Criterion (AIC).
