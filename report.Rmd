@@ -1,5 +1,5 @@
 ---
-title: "P8108 - Hormonal Treatment and Survival in Breast Cancer"
+title: "P8108 - Hormonal Treatment and Chemotherapy: Comparative Impact on Survival Rates of Breast Cancer"
 author: "Zhezheng Jin, Mingkai Chen, Youlan Shen, Hongru Tang "
 date: "2023-12-11"
 output:
