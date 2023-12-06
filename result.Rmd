@@ -27,11 +27,11 @@ A stratified log-rank test for Hormonal Treatment, taking into account chemother
 ### Cox Proportional Model:
 
 #### Proportional Hazard Checking:
-  The proportional hazard assumption were evaluated using Schoenfeld residuals. The plots for each covariate were examined (shown in figure ), the plots of grade and hormon show a trend of increase over time,  suggesting that the PH assumption might be violated. We also plotted Kaplan-Meier log-log survival plots for this two variables, which are commonly used to visually assess the proportional hazards (PH) assumption in survival analysis. We noticed that the two curves in both plots are not well-paralled, which confirmed our guess that they violate the PH assumption.
+  The proportional hazard assumption were evaluated using Schoenfeld residuals. The plots for each covariate were examined (shown in figure ), and no clear trend over time was observed, suggesting no assumption might be violated.  We further plotted Kaplan-Meier log-log survival plots for categorical variables, which are commonly used to visually assess the proportional hazards (PH) assumption in survival analysis. We noticed that the curves in each plot are all approximately paralled, which confirmed our  that no variable violate the PH assumption.
 
 #### Model fitting:
 
-We fit thr Cox proportional hazard model stratified by grade and hormon. The final model was selected using the stepwise AIC method with both forward and backward selection strategies. The stepwise selection process iteratively added or removed variables based on their impact on the Akaike Information Criterion (AIC).
+We fit the initial Cox proportional hazard model for all variables. The final model was selected using the stepwise AIC method with both forward and backward selection strategies. The stepwise selection process iteratively added or removed variables based on their impact on the Akaike Information Criterion (AIC).
 
 #### Model interpretation: 
 
@@ -39,19 +39,24 @@ After variable selection , the final model includes age,size, number of nodes an
 
 Coefficients and Hazard Ratios:
 
-Age: The coefficient is 0.004333, indicating a small increase in hazard with increasing age. The hazard ratio is 1.004342, meaning each additional year of age increases the hazard by approximately 0.4%. This effect is statistically significant (p = 0.0461).
+Age: The coefficient is 0.0042, indicating a small increase in hazard with increasing age. The hazard ratio is 1.0043, meaning each additional year of age increases the hazard by approximately 0.4%. This effect is statistically significant (p = 0.0493).
 
-Size20-50 and size>50: These categories show significant increases in hazard compared to the reference category (presumably size <20). The hazard ratios are 1.430920 and 1.912959, respectively, indicating substantially higher hazards for larger tumor sizes.
+Size20-50 and size>50: These categories show significant increases in hazard compared to the reference category (presumably size <20). The hazard ratios are 1.43 and 1.91, respectively, indicating substantially higher hazards for larger tumor sizes.
 
 
 Nodes: Each additional node increases the hazard by 7.75%. The hazard ratio is 1.077534, which is highly significant.
 
+Grade: Change from grade from 2 to 3 in differentiation grade is associated with a 40% increase in hazard (hazard ratio = 1.3992, p = 2.9e-08), indicating that higher grades are associated with poorer prognosis.
 
-Chemo: The coefficient for chemotherapy is negative (-0.097771), suggesting a protective effect (reduced hazard), but this is not statistically significant (p = 0.1544).
 
-Additionally, the concordance index is 0.65, indicating a moderate predictive accuracy of the model. Also, likelihood Ratio, Wald, and Score Tests have highly significant p-values (<2e-16), indicating that the model as a whole is a significant improvement over a null model with no covariates.
+Chemo: The coefficient for chemotherapy is -0.098, suggesting a protective effect (reduced hazard), but this is not statistically significant (p = 0.15).
 
-In summary, the model suggests that age, tumor size, and the number of nodes are significant predictors of the hazard. Larger tumor sizes and more nodes are associated with higher hazards. Age shows a small but significant effect. Chemotherapy, while indicating a protective effect, is not statistically significant in this model.
+Hormon: The coefficient for chemotherapy is -0.12, suggesting a protective effect (reduced hazard), but this is not statistically significant (p = 0.11).
+
+
+Additionally, the concordance index is 0.67, indicating a moderate predictive accuracy of the model. Also, likelihood Ratio, Wald, and Score Tests have highly significant p-values (<2e-16), indicating that the model as a whole is a significant improvement over a null model with no covariates.
+
+In summary, the model suggests that age, tumor size, number of nodes , chemotherapy and hormonal therapy are significant predictors of the hazard. Larger tumor sizes and more nodes are associated with higher hazards. Age shows a small but significant effect. Chemotherapy and hormon, while indicating a protective effect, is not statistically significant in this model.
 
 
 

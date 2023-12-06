@@ -43,7 +43,38 @@ ggsave(file = "cox_ph_files/Schoenfeld.jpg")
 
 
 ```{r}
-fit1 <- coxph(surv_object ~ age + size + strata(grade) + nodes + pgr + er + strata(hormon) + chemo, data = rotterdam)
+categorical_vars <- c(4, 5, 6, 10, 11)
+categorical_names <- c("meno", "size", "grade", "hormon", "chemo")
+
+# Ensure 'rotterdam' is your data frame and 'surv_object' is correctly defined before this loop
+
+for (i in 1:5) {
+  col_index <- categorical_vars[i]
+  # Fit Kaplan-Meier estimator
+  fit <- survfit(surv_object ~ rotterdam[,col_index], data = rotterdam)
+  
+  # Plot using ggsurvplot
+  p <- ggsurvplot(
+    fit, 
+    data = rotterdam, 
+    fun = "cloglog",        # For complementary log-log survival function
+    ggtheme = theme_minimal(),
+    title = paste("Log-Log plot for", categorical_names[i]),
+    xlab = "Log(Time)",
+    ylab = "Log(Cumulative hazard)"
+  )
+  
+  # Print the plot
+  print(p$plot)
+}
+
+
+
+```
+
+
+```{r}
+fit1 <- coxph(surv_object ~ age + size + grade + nodes + pgr + er + hormon + chemo, data = rotterdam)
 summary(fit1)
 stepwise_model <- stepAIC(fit1, direction = "both", trace = FALSE)
 summary(stepwise_model)

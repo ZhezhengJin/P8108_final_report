@@ -45,6 +45,9 @@ splots_2[[2]] <- ggsurvplot(colon_survfit_log_2, data = rotterdam, fun = "cloglo
 splots_2[[2]]$plot + labs(title = "Log of Negative Log of Estimated Survival Function-grade")
 ```
 
+
+
+
 From the log-log graph, the lines for two treatment groups are not proportional to each other, therefore, the proportional hazard assumption violates.
 
 The line is close to a straight line with slope equal to 1, we could consider using exponential distribution.
