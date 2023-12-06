@@ -5,4 +5,13 @@ date: "2023-12-06"
 output: pdf_document
 ---
 
+## Statistical methods
+o Discuss primary objective(s) of the project.
+o The method used. Here, you can talk about the non-parametric, semi-parametric or
+parametric methods as applied in your report. Remember to provide some details on these methods. Mentioning them by name is inadequate. Use any reference (published
+papers, book) provided they are cited appropriately.
+o Discuss applicable assumptions. Does your model have proportional hazard
+assumption? What kind of censoring does your data have and what assumption is
+applicable here? How do you check if these assumptions are met?
+o Include relevant formulas for selected method(s) if applicable.
 
