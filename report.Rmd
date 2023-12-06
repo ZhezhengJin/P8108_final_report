@@ -30,8 +30,19 @@ library(tibble)
 
 \newpage 
 
+# Abstract
+
+o Briefly discuss the research problem and how this report addresses that problem.
+o If possible, mention the main results.
+
 # Background and Objectives
 
+Research Question:
+How effective are hormonal and chemotherapy treatments in improving survival rates?
+
+o While this section is project-dependent, remember to include enough information so
+that the reader knows what your project is about. Briefly discuss the substantive field
+citing relevant papers where applicable.
 
 
 # Exploratory Data Analysis
@@ -40,20 +51,56 @@ library(tibble)
 
 # Methods
 
+## Study data
+o Discuss study data in prose form. Here, you can talk about the study population, total
+sample size, the baseline characteristics, the primary outcome/endpoint, type of
+censoring etc.
+o Include well tabulated and annotated summary statistics of the baseline
+characteristics.
+o Missing data and how it was dealt with if applicable.
+
+## Statistical methods
+o Discuss primary objective(s) of the project.
+o The method used. Here, you can talk about the non-parametric, semi-parametric or
+parametric methods as applied in your report. Remember to provide some details on these methods. Mentioning them by name is inadequate. Use any reference (published
+papers, book) provided they are cited appropriately.
+o Discuss applicable assumptions. Does your model have proportional hazard
+assumption? What kind of censoring does your data have and what assumption is
+applicable here? How do you check if these assumptions are met?
+o Include relevant formulas for selected method(s) if applicable.
+
 
 \newpage
 
 # Results
 
+o Talk about the study results in prose form making sure to include appropriate tables
+and figures. No interpretation at this stage.
+o Things to consider include hazard ratio, p-values, median survival times, relevant
+confidence intervals, log-rank test(s). Remember to mention selected significance
+level (0.05, 0.01 etc).
+
 
 # Discussion 
 
+o Briefly reiterate the study population, objective(s) and the primary outcome.
+o Discuss the results as presented in previous section. Here, you can provide
+interpretation as appropriate.
+o Mention any limitations if there and how that might affect the interpretation of the
+study results.
+
 # Conlusion
 
+o Summarize the main findings and your conclusions as related to the objectives. You
+can also give recommendations if any.
+
+\newpage
 # References
 
 
 \newpage 
 # Appendix {-}
 
+o Put well organized and documented code here.
+o Any additional tables and figures
 
