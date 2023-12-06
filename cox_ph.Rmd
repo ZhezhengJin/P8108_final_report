@@ -7,7 +7,7 @@ date: "2023-11-28"
 ```{r}
 library(survival)
 library(MASS)
-head(rotterdam)
+rotterdam[1:100,]
 ```
 
 
@@ -18,18 +18,28 @@ rotterdam$tstart = c(rep(0,2982))
 surv_object <- with(rotterdam, Surv(tstart, rfstime, rfs)) #with consideration of time-varying covariates
 ```
 
+
 ```{r}
+# Set up the plotting area to have 2 rows and 2 columns
+par(mfrow = c(3, 3))
+
 # Fit a basic Cox proportional hazards model
-cox_model <- coxph(Surv(rfstime, rfs) ~ age + size + grade + nodes + pgr + er + hormon + chemo, data = rotterdam)
+cox_model <- coxph(Surv(rfstime, rfs) ~ age + meno + size + grade + nodes + pgr + er + hormon + chemo, data = rotterdam)
+
 # Checking the Proportional Hazards assumption
 cox.zph_model <- cox.zph(cox_model)
-plot(cox.zph_model)
 
+# Extract the names of the covariates to use as plot titles
+covariate_names <- names(rotterdam[3:11])
+
+# Plot Schoenfeld residuals for each covariate with a title
+for(i in 1:9){
+  plot(cox.zph_model, var = i)
+  title(main = paste("Schoenfeld Residuals for", covariate_names[i]))
+}
+ggsave(file = "cox_ph_files/")
 ```
 
-```{r}
-
-```
 
 ```{r}
 fit1 <- coxph(surv_object ~ pspline(age) + size + grade + nodes + pgr + er + hormon + chemo, data = rotterdam)
@@ -38,3 +48,34 @@ stepwise_model <- stepAIC(fit1, direction = "both", trace = FALSE)
 summary(stepwise_model)
 ```
 
+
+## Cox Proportional Hazard Ratio Model:
+
+#### Proportional Hazard Checking:
+An initial Cox model was constructed including all mentioned covariates. The proportional hazards (PH) assumption, a critical assumption of the Cox model, was evaluated using Schoenfeld residuals. The plots for each covariate were examined (shown in figure ), and no clear trend over time was observed, suggesting that the PH assumption was reasonably met for all variables.
+
+#### Model fitting:
+The final model was selected using the stepwise AIC method with both forward and backward selection strategies. The stepwise selection process iteratively added or removed variables based on their impact on the Akaike Information Criterion (AIC).
+
+#### Model interpretation: 
+
+Variable Coefficients and Interpretation:
+
+Age: The coefficient for the linear term of age is positive (coef = 0.004963) and statistically significant (p = 5.6e-03), suggesting that the hazard increases with age. The non-linear component of age is also significant (p = 7.0e-08), indicating that the relationship between age and the hazard is not strictly linear.
+
+Tumor Size:
+size20-50: Patients with medium-sized tumors (20-50) have a hazard ratio of 1.3913 compared to those with the smallest tumors (<=20), indicating a 39.13% increase in the hazard, which is statistically significant (p = 1.4e-09).
+
+size>50: Patients with large tumors (>50) have a hazard ratio of 1.7721 compared to those with the smallest tumors, indicating a 77.21% increase in the hazard, which is also statistically significant (p = 4.0e-12).
+
+Grade: Each unit increase in differentiation grade is associated with a 39.17% increase in hazard (hazard ratio = 1.3917, p = 2.9e-08), indicating that higher grades are associated with poorer prognosis.
+
+Nodes: Each additional positive lymph node is associated with a 7.73% increase in hazard (hazard ratio = 1.0773, p = 2.2e-65), which is highly significant.
+
+Model Fit:
+
+The chi-square statistics for the individual covariates are all highly significant, suggesting that the covariates are strong predictors of the outcome.
+
+The exp(coef) column provides the hazard ratios for each covariate, which are used to interpret the effect size of each covariate on survival.
+
+In summary, the model indicates that age, tumor size, differentiation grade, and the number of positive lymph nodes are all significant predictors of survival. The effect of age on survival is non-linear, with both a linear and non-linear relationship to the hazard. This model provides valuable insights into the factors that are associated with survival in the patient population from the Rotterdam dataset.
