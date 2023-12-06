@@ -1,0 +1,59 @@
+---
+title: "P8108 - Hormonal Treatment and Survival in Breast Cancer"
+author: "Zhezheng Jin, Mingkai Chen, Youlan Shen, Hongru Tang "
+date: "2023-12-11"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_depth: '2'
+header-includes:
+- \usepackage{fancyhdr}
+- \usepackage{lipsum}
+- \pagestyle{fancy}
+- \fancyhead[R]{\thepage}
+- \fancypagestyle{plain}{\pagestyle{fancy}}
+- \usepackage{algorithm}
+- \usepackage{algpseudocode}
+- \usepackage{amsthm}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(tinytex.verbose = TRUE)
+library(knitr)
+library(tibble)
+```
+
+\newpage 
+
+# Background and Objectives
+
+
+
+# Exploratory Data Analysis
+
+
+
+# Methods
+
+
+\newpage
+
+# Results
+
+
+# Discussion 
+
+# Conlusion
+
+# References
+
+
+\newpage 
+# Appendix {-}
+
+
