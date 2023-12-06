@@ -36,6 +36,7 @@ o Briefly discuss the research problem and how this report addresses that proble
 o If possible, mention the main results.
 
 # Background and Objectives
+<<<<<<< HEAD
 
 Research Question:
 How effective are hormonal and chemotherapy treatments in improving survival rates?
@@ -43,13 +44,25 @@ How effective are hormonal and chemotherapy treatments in improving survival rat
 o While this section is project-dependent, remember to include enough information so
 that the reader knows what your project is about. Briefly discuss the substantive field
 citing relevant papers where applicable.
+=======
+Provide an overview of the subject area and context for the study.
+Discuss the importance and relevance of the research.
+Summarize the existing literature and how this study contributes to the field.
+Clearly state the aims of the study.
+Identify the specific questions or hypotheses the study addresses.
+Explain the significance of the analyses being performed (Kaplan-Meier estimates, log-rank test, Cox proportional hazards model, and proportional hazards checking).
+>>>>>>> 92ba98a (222)
 
 
 # Exploratory Data Analysis
-
+Describe the dataset used, including the source, the number of observations, and any relevant demographics or clinical characteristics of the subjects.
+Summarize key statistical features of the data, such as distributions of main variables, missing data, and potential outliers.
+Include visualizations such as histograms, box plots, or scatter plots to show distributions and relationships between variables.
+Report any preliminary findings or patterns observed that motivated further analysis.
 
 
 # Methods
+<<<<<<< HEAD
 
 ## Study data
 o Discuss study data in prose form. Here, you can talk about the study population, total
@@ -69,10 +82,17 @@ assumption? What kind of censoring does your data have and what assumption is
 applicable here? How do you check if these assumptions are met?
 o Include relevant formulas for selected method(s) if applicable.
 
+=======
+Outline the statistical methods and models used in the study, including Kaplan-Meier estimates, log-rank tests, and Cox proportional hazards modeling.
+Explain the rationale for choosing these methods and how they contribute to the study objectives.
+Detail the procedures for checking the proportional hazards assumption, including any graphical methods (like Schoenfeld residual plots) or statistical tests used.
+Discuss any data preprocessing steps, such as handling missing data or transforming variables.
+>>>>>>> 92ba98a (222)
 
 \newpage
 
 # Results
+<<<<<<< HEAD
 
 o Talk about the study results in prose form making sure to include appropriate tables
 and figures. No interpretation at this stage.
@@ -89,7 +109,23 @@ interpretation as appropriate.
 o Mention any limitations if there and how that might affect the interpretation of the
 study results.
 
+=======
+Present the Kaplan-Meier survival estimates and interpret the survival functions for different groups within the dataset.
+Report the results of the log-rank test, including the test statistic and p-value, and what they suggest about differences in survival between groups.
+Summarize the findings from the Cox proportional hazards model, including the estimated coefficients, hazard ratios, confidence intervals, and significance levels.
+Discuss the results of the proportional hazards assumption checks and any actions taken if violations were detected.
+
+# Discussion 
+Interpret the results in the context of the research question and objectives.
+Compare the findings with existing literature and theories.
+Discuss the potential implications of the findings for clinical practice or future research.
+Acknowledge the limitations of the study, such as potential confounding factors, sample size, or generalizability issues.
+Address any unexpected results or discrepancies with previous research.
+>>>>>>> 92ba98a (222)
 # Conlusion
+Summarize the key findings and their significance.
+Reiterate the importance of the study and how it contributes to the field.
+Suggest potential future directions for research based on the findings of this study.
 
 o Summarize the main findings and your conclusions as related to the objectives. You
 can also give recommendations if any.

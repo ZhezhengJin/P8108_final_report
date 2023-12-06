@@ -7,6 +7,7 @@ date: "2023-11-28"
 ```{r}
 library(survival)
 library(MASS)
+library(ggplot2)
 rotterdam[1:100,]
 ```
 
@@ -25,7 +26,7 @@ par(mfrow = c(3, 3))
 
 # Fit a basic Cox proportional hazards model
 cox_model <- coxph(Surv(rfstime, rfs) ~ age + meno + size + grade + nodes + pgr + er + hormon + chemo, data = rotterdam)
-
+summary(cox_model)
 # Checking the Proportional Hazards assumption
 cox.zph_model <- cox.zph(cox_model)
 
@@ -37,7 +38,7 @@ for(i in 1:9){
   plot(cox.zph_model, var = i)
   title(main = paste("Schoenfeld Residuals for", covariate_names[i]))
 }
-ggsave(file = "cox_ph_files/")
+ggsave(file = "cox_ph_files/Schoenfeld.jpg")
 ```
 
 
