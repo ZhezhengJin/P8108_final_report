@@ -43,6 +43,7 @@ How effective are hormonal treatment and chemotherapy in improving survival rate
 o While this section is project-dependent, remember to include enough information so
 that the reader knows what your project is about. Briefly discuss the substantive field
 citing relevant papers where applicable.
+<<<<<<< HEAD
 
 
 # Exploratory Data Analysis
@@ -50,6 +51,17 @@ citing relevant papers where applicable.
 
 
 # Methods
+=======
+
+Provide an overview of the subject area and context for the study.
+Discuss the importance and relevance of the research.
+Summarize the existing literature and how this study contributes to the field.
+Clearly state the aims of the study.
+Identify the specific questions or hypotheses the study addresses.
+Explain the significance of the analyses being performed (Kaplan-Meier estimates, log-rank test, Cox proportional hazards model, and proportional hazards checking).
+
+
+>>>>>>> 1312af40eff371ef3ff4299fdd0d58571aba81b7
 
 ## Study data
 o Discuss study data in prose form. Here, you can talk about the study population, total
@@ -58,6 +70,12 @@ censoring etc.
 o Include well tabulated and annotated summary statistics of the baseline
 characteristics.
 o Missing data and how it was dealt with if applicable.
+
+Describe the dataset used, including the source, the number of observations, and any relevant demographics or clinical characteristics of the subjects.
+Summarize key statistical features of the data, such as distributions of main variables, missing data, and potential outliers.
+Include visualizations such as histograms, box plots, or scatter plots to show distributions and relationships between variables.
+Report any preliminary findings or patterns observed that motivated further analysis.
+
 
 ## Statistical methods
 o Discuss primary objective(s) of the project.
@@ -69,8 +87,16 @@ assumption? What kind of censoring does your data have and what assumption is
 applicable here? How do you check if these assumptions are met?
 o Include relevant formulas for selected method(s) if applicable.
 
+<<<<<<< HEAD
+=======
 
-\newpage
+Outline the statistical methods and models used in the study, including Kaplan-Meier estimates, log-rank tests, and Cox proportional hazards modeling.
+Explain the rationale for choosing these methods and how they contribute to the study objectives.
+Detail the procedures for checking the proportional hazards assumption, including any graphical methods (like Schoenfeld residual plots) or statistical tests used.
+Discuss any data preprocessing steps, such as handling missing data or transforming variables.
+>>>>>>> 1312af40eff371ef3ff4299fdd0d58571aba81b7
+
+
 
 # Results
 
@@ -81,6 +107,13 @@ confidence intervals, log-rank test(s). Remember to mention selected significanc
 level (0.05, 0.01 etc).
 
 
+Present the Kaplan-Meier survival estimates and interpret the survival functions for different groups within the dataset.
+Report the results of the log-rank test, including the test statistic and p-value, and what they suggest about differences in survival between groups.
+Summarize the findings from the Cox proportional hazards model, including the estimated coefficients, hazard ratios, confidence intervals, and significance levels.
+Discuss the results of the proportional hazards assumption checks and any actions taken if violations were detected.
+
+
+
 # Discussion 
 
 o Briefly reiterate the study population, objective(s) and the primary outcome.
@@ -89,10 +122,17 @@ interpretation as appropriate.
 o Mention any limitations if there and how that might affect the interpretation of the
 study results.
 
+<<<<<<< HEAD
 # Conlusion
+=======
+Interpret the results in the context of the research question and objectives.
+Compare the findings with existing literature and theories.
+Discuss the potential implications of the findings for clinical practice or future research.
+Acknowledge the limitations of the study, such as potential confounding factors, sample size, or generalizability issues.
+Address any unexpected results or discrepancies with previous research.
+=======
+>>>>>>> 1312af40eff371ef3ff4299fdd0d58571aba81b7
 
-o Summarize the main findings and your conclusions as related to the objectives. You
-can also give recommendations if any.
 
 \newpage
 # References
