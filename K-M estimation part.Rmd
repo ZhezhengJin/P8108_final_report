@@ -93,3 +93,22 @@ ggsurvplot(km_fit2, data=  rotterdam,
 
 The total number of subjects observed was 1546, among which 1080 experienced the event of interest
 We can see from the Chisq and p-values here suggest that the non-linear relationships of these variables are significant. 
+
+
+```{r}
+Rotterdam$censored_status <- ifelse(status == 1, 0, 1)  # Assuming '1' in status indicates the event
+surv_fit <- survfit(Surv(rfstime, status) ~ censored_status, data = Rotterdam)
+ggsurvplot(
+  surv_fit, 
+  data = Rotterdam,
+  pval = TRUE,                   # 显示 P 值
+  risk.table = TRUE,             # 显示风险表
+  linetype = "strata",           # 不同分层使用不同的线型
+  ggtheme = theme_minimal(),     # 使用简洁主题
+  palette = c("#00BA38", "#F8766D"), # 定制颜色
+  legend.title = "Status",
+  legend.labs = c("Uncensored", "Censored"),
+  xlab = "Time",
+  ylab = "Survival Probability"
+)
+```
