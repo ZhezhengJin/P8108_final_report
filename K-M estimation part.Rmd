@@ -33,7 +33,7 @@ stats <- stats %>%
               mutate(treat = "Overall"))
 stats %>%
   tbl_summary(by = treat) %>% 
-   modify_caption("**People Characteristics in the Study**") %>%
+   modify_caption("**People Characteristics for Hormon Treatment**") %>%
   bold_labels()
 ```
 
@@ -51,7 +51,7 @@ stats <- stats %>%
               mutate(treat = "Overall"))
 stats %>%
   tbl_summary(by = treat) %>% 
-   modify_caption("**People Characteristics in the Study**") %>%
+   modify_caption("**People Characteristics for Chemo Treatment**") %>%
   bold_labels()
 ```
 
