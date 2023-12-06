@@ -1,0 +1,13 @@
+---
+title: "Result"
+output: html_document
+date: "2023-12-06"
+---
+
+
+
+
+
+
+
+![much-smaller image](foo.jpg){#id .class width=30 height=20px}
