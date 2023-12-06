@@ -7,7 +7,7 @@ output: github_document
 
 ```{r setup}
 library(survival)
-rotterdam
+head(rotterdam, 30)
 ```
 
 ## Log-rank test (death as event) comparing hormonal treatment
@@ -23,13 +23,19 @@ Groups Compared: The test compared survival times between two groups: hormon=0 a
 
 Number of Subjects (N): There were 2,643 subjects in the hormon=0 group and 339 subjects in the hormon=1 group.
 
-Observed Deaths: In the hormon=0 group, there were 1,113 observed deaths, whereas in the hormon=1 group, there were 159 observed deaths.
-
-Expected Deaths: 1,162 deaths were expected in the hormon=0 group and 110 in the hormon=1 group.
-
 The p-value of 1e-06 suggests that there is a statistically significant difference in survival between the two hormone treatment groups.
 The very low p-value (much less than 0.05) leads us to reject the null hypothesis of no difference in survival between the two groups.
 The result indicates that hormone treatment status (hormon) is strongly associated with differences in survival outcomes in the dataset. Specifically, the observed number of events in each group significantly deviates from what would be expected if there were no difference in survival between the groups.
+
+## Log-rank test (death as event) comparing chemotherapy
+```{r}
+log_rank_test_chemo1 <- survdiff(surv_obj1 ~ chemo, data = rotterdam)
+
+print(log_rank_test_chemo1)
+```
+
+The p-value of 0.5 suggests that there is not a statistically significant difference in survival between the two chemotherapy groups.
+The result indicates that chemotherapy (chemo) is weakly associated with differences in survival outcomes in the dataset. 
 
 ## Log-rank test (recurrence as event) comparing hormonal treatment
 ```{r}
@@ -40,21 +46,20 @@ log_rank_test_hormon2 <- survdiff(surv_obj2 ~ hormon, data = rotterdam)
 print(log_rank_test_hormon2)
 ```
 
-Number of Subjects (N): There were 2,643 subjects in the hormon=0 group and 339 subjects in the hormon=1 group.
-
-Observed Events (Recurrences):
-
-In the hormon=0 group, there were 1,336 observed events (recurrences).
-In the hormon=1 group, there were 182 observed events.
-
-Expected Events: 
-
-1,371 in the hormon=0 group.
-147 in the hormon=1 group.
-
 The p-value of 0.002 suggests that there is a statistically significant difference in the recurrence rate between the two hormone treatment groups.
 Given that the p-value is less than 0.05, we reject the null hypothesis of no difference in recurrence rates between the two groups.
 The result indicates that hormone treatment status (hormon) is associated with a difference in recurrence rates in the dataset. Specifically, the observed number of recurrences in each group deviates from what would be expected if there were no difference in recurrence rates between the groups.
+
+## Log-rank test (recurrence as event) comparing chemotherapy
+```{r}
+log_rank_test_chemo2 <- survdiff(surv_obj2 ~ chemo, data = rotterdam)
+
+print(log_rank_test_chemo2)
+```
+
+The p-value of 0.005 suggests that there is a statistically significant difference in the recurrence rate between the two chemotherapy groups.
+Given that the p-value is less than 0.05, we reject the null hypothesis of no difference in recurrence rates between the two groups.
+The result indicates thatchemotherapy (chemo) is associated with a difference in recurrence rates in the dataset. Specifically, the observed number of recurrences in each group deviates from what would be expected if there were no difference in recurrence rates between the groups.
 
 ## Log-rank test (combine both as event) comparing hormonal treatment
 ```{r}
@@ -66,19 +71,19 @@ log_rank_test_hormon3 <- survdiff(surv_obj3 ~ hormon, data = rotterdam)
 print(log_rank_test_hormon3)
 ```
 
-Observed Events:
-
-In the hormon=0 group, there were 1,507 observed events.
-In the hormon=1 group, there were 206 observed events.
-
-Expected Events:
-
-hormon=0: 1,551 events were expected.
-hormon=1: 162 events were expected.
-
 The p-value of 0.0003 suggests that there is a statistically significant difference in survival between the two hormone treatment groups.
 The very low p-value (much less than 0.05) leads us to reject the null hypothesis of no difference in survival between the two groups.
 The result indicates that hormone treatment status (hormon) is strongly associated with differences in survival outcomes in the dataset, when considering both recurrence and death as the events of interest. Specifically, the observed number of events in each group significantly deviates from what would be expected if there were no difference in survival between the groups.
+
+## Log-rank test (combine both as event) comparing chemotherapy
+```{r}
+log_rank_test_chemo3 <- survdiff(surv_obj3 ~ chemo, data = rotterdam)
+
+print(log_rank_test_chemo3)
+```
+
+The p-value of 0.4 suggests that there is not a statistically significant difference in survival between the two chemotherapy groups.
+The result indicates that chemotherapy (chemo) is weakly associated with differences in survival outcomes in the dataset, when considering both recurrence and death as the events of interest. 
 
 ## Stratified log-rank test (combine both as event) comparing hormonal treatment stratified by chemotherapy
 ```{r}
@@ -87,20 +92,10 @@ stratified_log_rank_test <- survdiff(surv_obj3 ~ hormon + strata(chemo), data = 
 print(stratified_log_rank_test)
 ```
 
-Stratification: The test was stratified by the chemo variable, meaning the analysis was conducted separately within each chemotherapy status group, but the overall test combines these analyses.
-
-Observed Deaths:
-
-In the hormon=0 group, there were 1507 observed deaths.
-In the hormon=1 group, there were 206 observed deaths.
-
-Expected Deaths: 
-
-1553 in the hormon=0 group.
-160 in the hormon=1 group.
+Stratification: The test was stratified by the chemotherapy, meaning the analysis was conducted separately within each chemotherapy status group, but the overall test combines these analyses.
 
 The p-value of 0.0001 suggests that there is a statistically significant difference in survival between the two hormone treatment groups when stratified by chemotherapy status.
 The very low p-value (much less than 0.05) leads us to reject the null hypothesis of no difference in survival between the two groups within each stratum of chemotherapy status.
-This result indicates that hormone treatment status (hormon) is strongly associated with differences in the combined outcomes of recurrence or death, and this association holds true even when accounting for whether patients received chemotherapy or not.
+This result indicates that hormone treatment status (hormon) is strongly associated with differences in the combined outcomes of recurrence and death, and this association holds true even when accounting for whether patients received chemotherapy or not.
 
 
