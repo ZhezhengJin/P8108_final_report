@@ -1,0 +1,32 @@
+---
+title: "Partial likelihood Test"
+author: "Zhezheng Jin"
+date: "2023-11-30"
+output: github_document
+---
+
+```{r setup}
+library(survival)
+```
+
+## Partial likelihood Test for hormonal treatment
+
+```{r}
+rfs  <- pmax(rotterdam$recur, rotterdam$death)
+rfstime <- with(rotterdam, ifelse(recur==1, rtime, dtime))
+
+# Fit the full model
+full_model <- coxph(Surv(rfstime, rfs) ~ age + size + grade + nodes + pgr + er + hormon, data = rotterdam)
+
+# Fit the reduced model (without hormon)
+reduced_model <- coxph(Surv(rfstime, rfs) ~ age + size + grade + nodes + pgr + er, data = rotterdam)
+
+# Conduct the likelihood ratio test
+test <- anova(reduced_model, full_model, test="LRT")
+
+# View the results
+print(test)
+```
+
+The partial likelihood ratio test comparing two Cox proportional hazards models: one without the 'hormon' variable (Model 1) and one with it (Model 2). Based on the log-likelihood values, Model 2 (including the 'hormon' variable) has a slightly higher log-likelihood (-12567) compared to Model 1 (-12569), suggesting a marginally better fit.
+The p-value is 0.112. This p-value tests the null hypothesis that adding 'hormon' to the model does not significantly improve the model's fit.
