@@ -1,6 +1,6 @@
 ---
 title: "mc5296"
-output: pdf_document
+output: github_document
 date: "2023-11-28"
 ---
 
@@ -8,6 +8,8 @@ date: "2023-11-28"
 library(survival)
 library(MASS)
 library(ggplot2)
+library(tidyverse)
+library(survminer)
 rotterdam[1:100,]
 ```
 
