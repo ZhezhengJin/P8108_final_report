@@ -1,0 +1,28 @@
+---
+title: "Background"
+author: "Zhezheng Jin"
+date: "2023-12-08"
+output: pdf_document
+---
+
+## Background
+
+Survival analysis is a branch of statistics that deals with the analysis of time-to-event data, typically focusing on the time until an event of interest occurs (Schober & Vetter, 2018). In the context of breast cancer research, this event is often the recurrence of cancer or the death of the patient. The primary goal of survival analysis in this field is to understand and quantify the survival experiences of patients, considering factors such as treatment, demographics, and tumor characteristics.
+
+Breast cancer remains one of the most common cancers worldwide, affecting a significant proportion of the female population (Kolak et al., 2017). It poses substantial health, psychological, and economic burdens, making it a critical area of study. Research in this field not only helps in understanding the disease better but also aids in developing effective treatment strategies, improving patient care, and enhancing survival rates.
+
+Using real trial data, such as the Rotterdam dataset, a highly regarded source in breast cancer research, is crucial for obtaining practical and reliable insights.This dataset is part of a larger compilation of data gathered from the Rotterdam tumor bank, encompassing records of 2982 primary breast cancer patients (Royston & Altman, 2013). Its extensive coverage and detailed recording of various clinical and pathological factors make it an invaluable tool for researchers and healthcare professionals. The analysis of such comprehensive data allows researchers to draw more accurate conclusions that can directly impact clinical practices and patient outcomes.
+
+To better conducting the research, common methods like the Kaplan-Meier estimator,the log-rank test, and the Cox proportional hazards model are often used in survival analysis (Schober & Vetter, 2018). These statistical methods help in understanding the complex dynamics of breast cancer survival and the effectiveness of different treatments.
+
+The overarching aim of this project is to apply survival analysis techniques to the Rotterdam breast cancer dataset to understand the factors affecting the survival of breast cancer patients. By doing so, the project seeks to contribute valuable insights into the effectiveness of hormonal treatment and other therapeutic interventions in breast cancer care. This project not only furthers the scientific understanding of breast cancer survival but also provides evidence-based recommendations that could enhance patient care and treatment strategies.
+
+## References
+
+Royston, P., & Altman, D. G. (2013). External validation of a Cox prognostic model: principles and methods. BMC Medical Research Methodology, 13(1). https://doi.org/10.1186/1471-2288-13-33
+
+Indrayan, A., & Tripathi, C. B. (2021). Survival analysis: Where, why, what and how? Indian Pediatrics, 59(1), 74–79. https://doi.org/10.1007/s13312-022-2425-5
+
+Kolak, A., Kamińska, M., Sygit, K., Budny, A., Surdyka, D., Kukiełka-Budny, B., & Burdan, F. (2017). Primary and secondary prevention of breast cancer. Annals of Agricultural and Environmental Medicine, 24(4), 549–553. https://doi.org/10.26444/aaem/75943
+
+Schober, P., & Vetter, T. R. (2018). Survival analysis and interpretation of Time-to-Event data. Anesthesia & Analgesia, 127(3), 792–798. https://doi.org/10.1213/ane.0000000000003653
