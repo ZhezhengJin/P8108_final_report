@@ -37,5 +37,5 @@ Cox Proportional Hazards Model:
 $h(t) = h_0(t) \exp(\beta_1 \cdot \text{pspline(age)} + \beta_2 \cdot \text{size} + \beta_3 \cdot \text{grade} + \beta_4 \cdot \text{nodes} + \beta_5 \cdot \text{pgr} + \beta_6 \cdot \text{er} + \beta_7 \cdot \text{hormon})$
 
 
-Where $h(t)$ is the hazard at time $t_i$, $h_0(t)$ is the baseline hazard, $\beta_1, \beta_2, ..., \beta_7$ are the coefficients for each covariate, which include age modeled with a penalized spline, tumor size, grade, number of positive lymph nodes, progesterone receptor levels, estrogen receptor levels, hormonal treatment, and chemotherapy, respectively.
+Where $h(t)$ is the hazard at time $t_i$, $h_0(t)$ is the baseline hazard, $\beta_1, \beta_2, ..., \beta_7$ are the coefficients for each covariate, which include age modeled with a penalized spline, tumor size, grade, number of positive lymph nodes, progesterone receptor levels, estrogen receptor levels, and hormonal treatment, respectively.
 
