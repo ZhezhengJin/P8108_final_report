@@ -7,47 +7,17 @@ output: github_document
 
 ```{r setup}
 library(survival)
-head(rotterdam, 30)
+library(nph)
 ```
-
-## Log-rank test (death as event) comparing hormonal treatment
-```{r}
-surv_obj1 <- Surv(time = rotterdam$dtime, event = rotterdam$death)
-
-log_rank_test_hormon1 <- survdiff(surv_obj1 ~ hormon, data = rotterdam)
-
-print(log_rank_test_hormon1)
-```
-
-Groups Compared: The test compared survival times between two groups: hormon=0 and hormon=1.
-
-Number of Subjects (N): There were 2,643 subjects in the hormon=0 group and 339 subjects in the hormon=1 group.
-
-The p-value of 1e-06 suggests that there is a statistically significant difference in survival between the two hormone treatment groups.
-The very low p-value (much less than 0.05) leads us to reject the null hypothesis of no difference in survival between the two groups.
-The result indicates that hormone treatment status (hormon) is strongly associated with differences in survival outcomes in the dataset. Specifically, the observed number of events in each group significantly deviates from what would be expected if there were no difference in survival between the groups.
-
-## Log-rank test (recurrence as event) comparing hormonal treatment
-```{r}
-surv_obj2 <- Surv(time = rotterdam$rtime, event = rotterdam$recur)
-
-log_rank_test_hormon2 <- survdiff(surv_obj2 ~ hormon, data = rotterdam)
-
-print(log_rank_test_hormon2)
-```
-
-The p-value of 0.002 suggests that there is a statistically significant difference in the recurrence rate between the two hormone treatment groups.
-Given that the p-value is less than 0.05, we reject the null hypothesis of no difference in recurrence rates between the two groups.
-The result indicates that hormone treatment status (hormon) is associated with a difference in recurrence rates in the dataset. Specifically, the observed number of recurrences in each group deviates from what would be expected if there were no difference in recurrence rates between the groups.
 
 ## Log-rank test (combine both as event) comparing hormonal treatment
 ```{r}
-rfs  <- pmax(rotterdam$recur, rotterdam$death)
-rfstime <- with(rotterdam, ifelse(recur==1, rtime, dtime))
-surv_obj3 <- Surv(time = rfstime, event = rfs)
-log_rank_test_hormon3 <- survdiff(surv_obj3 ~ hormon, data = rotterdam)
+rotterdam$rfs  <- pmax(rotterdam$recur, rotterdam$death)
+rotterdam$rfstime <- with(rotterdam, ifelse(recur==1, rtime, dtime))
+surv_obj1 <- Surv(time = rfstime, event = rfs)
+log_rank_test_hormon1 <- survdiff(surv_obj1 ~ hormon, data = rotterdam)
 
-print(log_rank_test_hormon3)
+print(log_rank_test_hormon1)
 ```
 
 The p-value of 0.0003 suggests that there is a statistically significant difference in survival between the two hormone treatment groups.
@@ -66,4 +36,79 @@ Stratification: The test was stratified by the chemotherapy, meaning the analysi
 The p-value of 0.0001 suggests that there is a statistically significant difference in survival between the two hormone treatment groups when stratified by chemotherapy status.
 The very low p-value (much less than 0.05) leads us to reject the null hypothesis of no difference in survival between the two groups within each stratum of chemotherapy status.
 This result indicates that hormone treatment status (hormon) is strongly associated with differences in the combined outcomes of recurrence and death, and this association holds true even when accounting for whether patients received chemotherapy or not.
+
+## Gehan's Wilcoxon Test
+```{r}
+gehan_test <- survdiff(surv_obj1 ~ hormon, data = rotterdam, rho = 1)
+print(gehan_test)
+```
+
+survdiff(formula = surv_obj1 ~ hormon, data = rotterdam, rho = 1)
+
+            N Observed Expected (O-E)^2/E (O-E)^2/V
+hormon=0 2643     1057     1087     0.864      11.2
+hormon=1  339      151      121     7.795      11.2
+
+ Chisq= 11.2  on 1 degrees of freedom, p= 8e-04 
+
+## Peto & Prentice Test
+```{r}
+peto_test <- survdiff(surv_obj1 ~ hormon, data = rotterdam, rho = 0)
+print(peto_test)
+```
+
+survdiff(formula = surv_obj1 ~ hormon, data = rotterdam, rho = 0)
+
+            N Observed Expected (O-E)^2/E (O-E)^2/V
+hormon=0 2643     1507     1551      1.25      13.4
+hormon=1  339      206      162     12.02      13.4
+
+ Chisq= 13.4  on 1 degrees of freedom, p= 3e-04 
+
+## Fleming-Harrington Test
+```{r}
+# p=0, q=1
+fh_test2 <- logrank.test(rotterdam$rfstime, rotterdam$rfs, rotterdam$hormon, rho = 0,  gamma = 1)
+print(fh_test2)
+
+# p=1, q=0
+fh_test1 <- logrank.test(rotterdam$rfstime, rotterdam$rfs, rotterdam$hormon, rho = 1,  gamma = 0)
+print(fh_test1)
+```
+
+logrank.test(time = rotterdam$rfstime, event = rotterdam$rfs, 
+    group = rotterdam$hormon, rho = 0, gamma = 1)
+
+     N Observed Expected (O-E)^2/E (O-E)^2/V
+1 2643     1507     1551      1.25       145
+2  339      206      162     12.02       145
+
+ Chisq= 13.6  on 1 degrees of freedom, p= 2e-04
+ rho   =  0 gamma =  1 
+ 
+logrank.test(time = rotterdam$rfstime, event = rotterdam$rfs, 
+    group = rotterdam$hormon, rho = 1, gamma = 0)
+
+     N Observed Expected (O-E)^2/E (O-E)^2/V
+1 2643     1507     1551      1.25      23.2
+2  339      206      162     12.02      23.2
+
+ Chisq= 11.2  on 1 degrees of freedom, p= 8e-04
+ rho   =  1 gamma =  0 
+
+## Tarone-Ware Test
+```{r}
+tarone_ware_test <- survdiff(surv_obj1 ~ hormon, data = rotterdam, rho = 0.5)
+print(tarone_ware_test)
+```
+
+survdiff(formula = surv_obj1 ~ hormon, data = rotterdam, rho = 0.5)
+
+            N Observed Expected (O-E)^2/E (O-E)^2/V
+hormon=0 2643     1251     1287      1.04      12.4
+hormon=1  339      175      139      9.63      12.4
+
+ Chisq= 12.4  on 1 degrees of freedom, p= 4e-04 
+
+
 
