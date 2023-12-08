@@ -86,7 +86,8 @@ print(km_fit2)
 
 ggsurvplot(km_fit2, data=  rotterdam,                  
            pval = TRUE,                
-           conf.int = TRUE,           
+           conf.int = TRUE, 
+           risk.table = TRUE,
            ggtheme = theme_minimal(),  
            palette = "Dark2",         
            main = "Kaplan-Meier Survival Curve", 
@@ -110,9 +111,10 @@ print(km_fit4)
 ```
 
 ```{r}
-par(mfrow = c(2,2))
+par(mfrow = c(1,2))
 ggsurvplot(km_fit3, data=  rotterdam_0,                  
-           conf.int = TRUE,           
+           conf.int = TRUE,  
+           risk.table = TRUE,
            ggtheme = theme_minimal(),  
            palette = "Dark2",         
            title  = "Kaplan-Meier Curve for Hormon = 0", 
