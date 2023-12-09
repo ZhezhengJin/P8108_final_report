@@ -1,5 +1,5 @@
 ---
-title: "P8108 - Hormonal Treatment: Impact on Survival Rates of Breast Cancer"
+title: "Survival Analysis of Breast Cancer Patients: Investigating Hormone Treatment Effects on Survival Rates Using the Rotterdam Dataset"
 author: "Zhezheng Jin, Mingkai Chen, Youlan Shen, Hongru Tang "
 date: "2023-12-11"
 output:
