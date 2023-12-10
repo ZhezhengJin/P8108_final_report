@@ -101,13 +101,26 @@ ggsave(file = "K-M-estimation-part_files/KM1.jpg")
 Rotterdam$status  <- pmax(rotterdam$recur, rotterdam$death)
 Rotterdam$rfstime <- with(rotterdam, ifelse(recur==1, rtime, dtime))
 
-rotterdam_1 <- Rotterdam%>%filter(hormon == 1)
-rotterdam_0 <- Rotterdam%>%filter(hormon == 0)
-
-km_fit3 <- survfit(Surv(rfstime, status) ~ rotterdam_0$chemo,data = rotterdam_0)
+rotterdam_0 <- Rotterdam%>%filter(grade == "2" & size == "<=20" )
+rotterdam_1 <- Rotterdam%>%filter(grade == "3" & size == ">50" & nodes >=6)
+rotterdam_2 <- Rotterdam%>%filter(size == ">50")
+km_fit3 <- survfit(Surv(rfstime, status) ~ rotterdam_0$hormon,data = rotterdam_0)
 print(km_fit3)
-km_fit4 <- survfit(Surv(rfstime, status) ~ rotterdam_1$chemo, data = rotterdam_1)
+
+km_fit4 <- survfit(Surv(rfstime, status) ~ rotterdam_1$hormon, data = rotterdam_1)
 print(km_fit4)
+ggsurvplot(km_fit4, data=  rotterdam_1,                  
+           pval = TRUE,                
+           conf.int = TRUE, 
+           risk.table = TRUE,
+           ggtheme = theme_minimal(),  
+           palette = "Dark2",         
+           title = "K-M Survival Curve for patients with grade 3 & size > 50 and # of nodes > 5", 
+           xlab = "Time",              
+           ylab = "Survival Probability") 
+
+km_fit5 <- survfit(Surv(rfstime, status) ~ rotterdam_2$hormon, data = rotterdam_2)
+print(km_fit5)
 ```
 
 ```{r}

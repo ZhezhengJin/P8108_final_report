@@ -23,8 +23,65 @@ surv_object <- with(rotterdam, Surv(tstart, rfstime, rfs)) #with consideration o
 
 
 ```{r}
+rotterdam$rfs  <- pmax(rotterdam$recur, rotterdam$death)
+rotterdam$rfstime <- with(rotterdam, ifelse(recur==1, rtime, dtime))
+
+hormon1 = subset(rotterdam,hormon == 1)
+hormon0 = subset(rotterdam, hormon == 0)
+unique_hormon_statuses <- unique(rotterdam$hormon)
+# Initialize an empty data frame for plotting
+plot_data <- data.frame()
+
+for(status in unique_hormon_statuses) {
+  subset_data <- rotterdam[rotterdam$hormon == status,]
+  fit <- survfit(Surv(event = rfs,time = rfstime) ~ 1, data = subset_data)
+  
+  temp_data <- data.frame(time = fit$time, surv = fit$surv, hormon_status = status)
+  temp_data$log_surv = log(temp_data$surv)
+  # Combine with the main plot data
+  plot_data <- rbind(plot_data, temp_data)
+
+} 
+
+ggplot(plot_data, aes(x=time, y=log_surv, color=factor(hormon_status))) +
+geom_line() +
+geom_point()+
+labs(title = "Log(Survival) vs. Time for Different hormon Statuses",
+x = "Time",
+y = "Log(Survival)",
+color = "hormon Status")
+```
+
+```{r}
+plot_data = data.frame()
+for(status in unique_hormon_statuses) {
+subset_data <- rotterdam[rotterdam$hormon == status,]
+fit <- survfit(Surv(event = rfs, time = rfstime) ~ 1, data = subset_data)
+# Creating a dataframe for this status
+temp_data <- data.frame(time = fit$time, surv = fit$surv, hormon_status = status)
+temp_data$log_time = log(temp_data$time)
+temp_data$log_log_surv = log(-log(temp_data$surv))
+# Combine with the main plot data
+plot_data <- rbind(plot_data, temp_data)
+}
+# Plot
+ggplot(plot_data, aes(x=log_time, y=log_log_surv, color=factor(hormon_status))) +
+geom_line() +
+geom_point()+
+labs(title = "Log-Log Survival Plot for Different hormon Statuses",
+x = "Log(Time)",
+y = "Log(-Log(Survival))",
+color = "hormon Status")
+
+
+
+
+```
+
+
+```{r}
 # Set up the plotting area to have 2 rows and 2 columns
-par(mfrow = c(3, 3))
+par(mfrow = c(2, 2))
 
 # Fit a basic Cox proportional hazards model
 cox_model <- coxph(Surv(rfstime, rfs) ~ age + meno + size + grade + nodes + pgr + er + hormon + chemo, data = rotterdam)
@@ -36,11 +93,35 @@ cox.zph_model <- cox.zph(cox_model)
 covariate_names <- names(rotterdam[3:11])
 
 # Plot Schoenfeld residuals for each covariate with a title
-for(i in 1:9){
+for(i in 1:4){
   plot(cox.zph_model, var = i)
   title(main = paste("Schoenfeld Residuals for", covariate_names[i]))
 }
 ggsave(file = "cox_ph_files/Schoenfeld.jpg")
+```
+
+```{r}
+# Set up the plotting area to have 2 rows and 2 columns
+par(mfrow = c(2, 3))
+
+# Fit a basic Cox proportional hazards model
+cox_model <- coxph(Surv(rfstime, rfs) ~ age + meno + size + grade + nodes + pgr + er + hormon + chemo, data = rotterdam)
+summary(cox_model)
+# Checking the Proportional Hazards assumption
+cox.zph_model <- cox.zph(cox_model)
+
+# Extract the names of the covariates to use as plot titles
+covariate_names <- names(rotterdam[3:11])
+
+# Plot Schoenfeld residuals for each covariate with a title
+for(i in 5:9){
+  plot(cox.zph_model, var = i)
+  title(main = paste("Schoenfeld Residuals for", covariate_names[i]))
+}
+ggsave(file = "cox_ph_files/Schoenfeld.jpg")
+
+
+
 ```
 
 
