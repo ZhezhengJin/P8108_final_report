@@ -30,7 +30,8 @@ head(rotterdam)
 # liberal definition of rfs (count later deaths)
 rotterdam <- rotterdam %>% 
   mutate(rfs = pmax(recur, death),
-         rfstime = ifelse(recur == 1, rtime, dtime))
+         rfstime = ifelse(recur == 1, rtime, dtime),
+         grade = factor(grade)) 
 ```
 
 ``` r
@@ -53,7 +54,24 @@ consider using exponential distribution.
 
 ### trying stratified groups on size groups/age groups
 
-### check continuous variables interaction with time
+``` r
+size <- rotterdam %>% dplyr::select(size) %>% unique() %>% pull()
+plot <- list()
+for (i in 1:length(size)) {
+  data <- rotterdam[rotterdam$size == size[i], ]
+  colon_survfit_log = survfit(Surv(log(rfstime + 1), rfs) ~ hormon, data = data)
+  splots <- ggsurvplot(colon_survfit_log, data = data, fun = "cloglog",
+                          risk.table = FALSE, xlab = "log(Time)", 
+                          ggtheme = theme_minimal(), xlim = c(3,10)) + labs(title = paste("Log(-Log(S(t))) of in Size Group", size[i]))
+  plot[[i]] <- splots
+}
+arrange_ggsurvplots(plot, print = TRUE,
+  ncol = 2, nrow = 2, risk.table.height = 0.4)
+```
+
+![](Cox_Model_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
+### check continuous variables interaction with time (not included since assumption is not violated)
 
 ``` r
 # fit a entire cox model, find significant variables
@@ -67,13 +85,12 @@ fit1 <- coxph(Surv(rfstime, rfs) ~ age + meno + size + grade + nodes + pgr + er 
 rotterdam <- rotterdam %>% 
   mutate(
     aget = age * log(rfstime),
-    gradet = grade * log(rfstime),
     nodest = nodes * log(rfstime),
     pgrt = pgr * log(rfstime), 
     ert = er * log(rfstime)
 )
 fit2 <- coxph(Surv(rfstime, rfs) ~ age + meno + size + grade + nodes + pgr + er +
-                hormon + chemo + aget + gradet + nodest + pgrt + ert, data = rotterdam)
+                hormon + chemo + aget + nodest + pgrt + ert, data = rotterdam)
 ```
 
 ### model fitting and plots
@@ -81,20 +98,26 @@ fit2 <- coxph(Surv(rfstime, rfs) ~ age + meno + size + grade + nodes + pgr + er 
 ``` r
 # stepwise model
 model3 <- stepwiseCox(Surv(rfstime, rfs) ~ age + meno + size + grade + nodes + pgr + er +
-                hormon + chemo + aget + gradet + nodest + pgrt + ert, data = rotterdam, 
+                hormon + chemo + aget + nodest + pgrt + ert, data = rotterdam, 
             selection = "bidirection", select = "SL", method = "breslow", 
             sle = 0.25, sls = 0.15)
 model3$`Selected Varaibles`
 ```
 
     ##        variables1 variables2 variables3 variables4 variables5 variables6
-    ## xModel     gradet      grade     nodest     hormon        age       aget
-    ##        variables7 variables8 variables9 variables10 variables11 variables12
-    ## xModel       size       meno        ert        pgrt         pgr          er
+    ## xModel      nodes     nodest       aget        age       meno        ert
+    ##        variables7 variables8 variables9 variables10
+    ## xModel         er     hormon      grade        size
 
 ``` r
-fit3 <- coxph(Surv(rfstime, rfs) ~ gradet + grade   + nodest + hormon + age + aget + size +
-                meno + ert + pgrt + pgr + er, data = rotterdam)
+fit3 <- coxph(Surv(rfstime, rfs) ~ nodes + nodest + age + aget + meno + er + 
+                ert + hormon + grade + size, data = rotterdam)
+```
+
+``` r
+fit4 <- coxph(Surv(rfstime, rfs) ~ age + meno + size + grade + nodes + pgr + er +
+                hormon + chemo, data = rotterdam)
+stepwise_model <- stepAIC(fit4, direction = "both", trace = FALSE)
 ```
 
 ### observed and fitted plot/ fitted survival plot?
@@ -116,7 +139,7 @@ summary(fit1)
     ## meno       4.724e-02  1.048e+00  8.534e-02  0.554   0.5799    
     ## size20-50  3.582e-01  1.431e+00  5.469e-02  6.550 5.75e-11 ***
     ## size>50    6.483e-01  1.912e+00  8.229e-02  7.878 3.33e-15 ***
-    ## grade      3.236e-01  1.382e+00  6.030e-02  5.366 8.05e-08 ***
+    ## grade3     3.236e-01  1.382e+00  6.030e-02  5.366 8.05e-08 ***
     ## nodes      7.416e-02  1.077e+00  4.428e-03 16.748  < 2e-16 ***
     ## pgr       -1.044e-04  9.999e-01  9.695e-05 -1.076   0.2817    
     ## er        -1.611e-05  1.000e+00  9.300e-05 -0.173   0.8625    
@@ -130,7 +153,7 @@ summary(fit1)
     ## meno         1.0484     0.9539    0.8869     1.239
     ## size20-50    1.4308     0.6989    1.2854     1.593
     ## size>50      1.9123     0.5229    1.6275     2.247
-    ## grade        1.3821     0.7235    1.2280     1.555
+    ## grade3       1.3821     0.7235    1.2280     1.555
     ## nodes        1.0770     0.9285    1.0677     1.086
     ## pgr          0.9999     1.0001    0.9997     1.000
     ## er           1.0000     1.0000    0.9998     1.000
@@ -148,96 +171,165 @@ summary(fit2)
 
     ## Call:
     ## coxph(formula = Surv(rfstime, rfs) ~ age + meno + size + grade + 
-    ##     nodes + pgr + er + hormon + chemo + aget + gradet + nodest + 
-    ##     pgrt + ert, data = rotterdam)
+    ##     nodes + pgr + er + hormon + chemo + aget + nodest + pgrt + 
+    ##     ert, data = rotterdam)
     ## 
     ##   n= 2982, number of events= 1713 
     ## 
     ##                 coef  exp(coef)   se(coef)       z Pr(>|z|)    
-    ## age        1.882e-01  1.207e+00  1.606e-02  11.721  < 2e-16 ***
-    ## meno       1.693e-01  1.185e+00  8.699e-02   1.947 0.051578 .  
-    ## size20-50  1.479e-01  1.159e+00  5.603e-02   2.640 0.008297 ** 
-    ## size>50    4.161e-02  1.042e+00  8.561e-02   0.486 0.626889    
-    ## grade      3.676e+01  9.201e+15  9.452e-01  38.888  < 2e-16 ***
-    ## nodes     -1.466e-02  9.854e-01  4.481e-02  -0.327 0.743502    
-    ## pgr        4.706e-03  1.005e+00  8.541e-04   5.511 3.58e-08 ***
-    ## er        -3.319e-03  9.967e-01  7.942e-04  -4.179 2.93e-05 ***
-    ## hormon    -2.937e-01  7.455e-01  8.027e-02  -3.659 0.000253 ***
-    ## chemo      9.152e-04  1.001e+00  7.070e-02   0.013 0.989672    
-    ## aget      -2.748e-02  9.729e-01  2.346e-03 -11.715  < 2e-16 ***
-    ## gradet    -4.886e+00  7.548e-03  1.240e-01 -39.402  < 2e-16 ***
-    ## nodest     4.737e-03  1.005e+00  6.714e-03   0.706 0.480486    
-    ## pgrt      -6.802e-04  9.993e-01  1.219e-04  -5.579 2.42e-08 ***
-    ## ert        4.899e-04  1.000e+00  1.084e-04   4.520 6.17e-06 ***
+    ## age        0.6973126  2.0083483  0.0134961  51.668  < 2e-16 ***
+    ## meno       0.6829647  1.9797384  0.0938317   7.279 3.37e-13 ***
+    ## size20-50  0.1478461  1.1593344  0.0552818   2.674 0.007486 ** 
+    ## size>50   -0.0093088  0.9907344  0.0856653  -0.109 0.913468    
+    ## grade3     0.1708631  1.1863283  0.0608491   2.808 0.004985 ** 
+    ## nodes      0.1490212  1.1606976  0.0424914   3.507 0.000453 ***
+    ## pgr        0.0031558  1.0031608  0.0007718   4.089 4.34e-05 ***
+    ## er        -0.0047939  0.9952176  0.0007977  -6.010 1.86e-09 ***
+    ## hormon    -0.2369153  0.7890581  0.0813774  -2.911 0.003599 ** 
+    ## chemo      0.0855757  1.0893440  0.0716156   1.195 0.232114    
+    ## aget      -0.1015336  0.9034508  0.0019522 -52.009  < 2e-16 ***
+    ## nodest    -0.0187512  0.9814235  0.0064599  -2.903 0.003699 ** 
+    ## pgrt      -0.0004561  0.9995440  0.0001127  -4.046 5.21e-05 ***
+    ## ert        0.0007138  1.0007141  0.0001077   6.626 3.45e-11 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ##           exp(coef) exp(-coef) lower .95 upper .95
-    ## age       1.207e+00  8.285e-01 1.170e+00 1.246e+00
-    ## meno      1.185e+00  8.442e-01 9.988e-01 1.405e+00
-    ## size20-50 1.159e+00  8.625e-01 1.039e+00 1.294e+00
-    ## size>50   1.042e+00  9.592e-01 8.815e-01 1.233e+00
-    ## grade     9.201e+15  1.087e-16 1.443e+15 5.867e+16
-    ## nodes     9.854e-01  1.015e+00 9.026e-01 1.076e+00
-    ## pgr       1.005e+00  9.953e-01 1.003e+00 1.006e+00
-    ## er        9.967e-01  1.003e+00 9.951e-01 9.982e-01
-    ## hormon    7.455e-01  1.341e+00 6.370e-01 8.725e-01
-    ## chemo     1.001e+00  9.991e-01 8.714e-01 1.150e+00
-    ## aget      9.729e-01  1.028e+00 9.684e-01 9.774e-01
-    ## gradet    7.548e-03  1.325e+02 5.919e-03 9.625e-03
-    ## nodest    1.005e+00  9.953e-01 9.916e-01 1.018e+00
-    ## pgrt      9.993e-01  1.001e+00 9.991e-01 9.996e-01
-    ## ert       1.000e+00  9.995e-01 1.000e+00 1.001e+00
+    ## age          2.0083     0.4979    1.9559    2.0622
+    ## meno         1.9797     0.5051    1.6472    2.3795
+    ## size20-50    1.1593     0.8626    1.0403    1.2920
+    ## size>50      0.9907     1.0094    0.8376    1.1719
+    ## grade3       1.1863     0.8429    1.0530    1.3366
+    ## nodes        1.1607     0.8616    1.0679    1.2615
+    ## pgr          1.0032     0.9968    1.0016    1.0047
+    ## er           0.9952     1.0048    0.9937    0.9968
+    ## hormon       0.7891     1.2673    0.6727    0.9255
+    ## chemo        1.0893     0.9180    0.9467    1.2535
+    ## aget         0.9035     1.1069    0.9000    0.9069
+    ## nodest       0.9814     1.0189    0.9691    0.9939
+    ## pgrt         0.9995     1.0005    0.9993    0.9998
+    ## ert          1.0007     0.9993    1.0005    1.0009
     ## 
-    ## Concordance= 0.981  (se = 0.001 )
-    ## Likelihood ratio test= 9863  on 15 df,   p=<2e-16
-    ## Wald test            = 2226  on 15 df,   p=<2e-16
-    ## Score (logrank) test = 7382  on 15 df,   p=<2e-16
+    ## Concordance= 0.958  (se = 0.001 )
+    ## Likelihood ratio test= 6771  on 14 df,   p=<2e-16
+    ## Wald test            = 2991  on 14 df,   p=<2e-16
+    ## Score (logrank) test = 7134  on 14 df,   p=<2e-16
 
 ``` r
 summary(fit3)
 ```
 
     ## Call:
-    ## coxph(formula = Surv(rfstime, rfs) ~ gradet + grade + nodest + 
-    ##     hormon + age + aget + size + meno + ert + pgrt + pgr + er, 
-    ##     data = rotterdam)
+    ## coxph(formula = Surv(rfstime, rfs) ~ nodes + nodest + age + aget + 
+    ##     meno + er + ert + hormon + grade + size, data = rotterdam)
     ## 
     ##   n= 2982, number of events= 1713 
     ## 
     ##                 coef  exp(coef)   se(coef)       z Pr(>|z|)    
-    ## gradet    -4.885e+00  7.562e-03  1.239e-01 -39.427  < 2e-16 ***
-    ## grade      3.674e+01  9.078e+15  9.443e-01  38.910  < 2e-16 ***
-    ## nodest     2.563e-03  1.003e+00  8.138e-04   3.149 0.001637 ** 
-    ## hormon    -2.942e-01  7.451e-01  7.998e-02  -3.679 0.000234 ***
-    ## age        1.880e-01  1.207e+00  1.605e-02  11.718  < 2e-16 ***
-    ## aget      -2.746e-02  9.729e-01  2.344e-03 -11.713  < 2e-16 ***
-    ## size20-50  1.489e-01  1.161e+00  5.596e-02   2.661 0.007795 ** 
-    ## size>50    4.085e-02  1.042e+00  8.545e-02   0.478 0.632565    
-    ## meno       1.683e-01  1.183e+00  8.601e-02   1.956 0.050420 .  
-    ## ert        4.888e-04  1.000e+00  1.083e-04   4.513 6.41e-06 ***
-    ## pgrt      -6.834e-04  9.993e-01  1.216e-04  -5.619 1.92e-08 ***
-    ## pgr        4.730e-03  1.005e+00  8.518e-04   5.552 2.82e-08 ***
-    ## er        -3.310e-03  9.967e-01  7.937e-04  -4.171 3.04e-05 ***
+    ## nodes      0.1277911  1.1363155  0.0416811   3.066  0.00217 ** 
+    ## nodest    -0.0153706  0.9847469  0.0062877  -2.445  0.01450 *  
+    ## age        0.6996185  2.0129846  0.0134862  51.877  < 2e-16 ***
+    ## aget      -0.1020754  0.9029615  0.0019487 -52.382  < 2e-16 ***
+    ## meno       0.7011031  2.0159753  0.0917710   7.640 2.18e-14 ***
+    ## er        -0.0036996  0.9963073  0.0007549  -4.901 9.56e-07 ***
+    ## ert        0.0005620  1.0005621  0.0001021   5.502 3.76e-08 ***
+    ## hormon    -0.2539732  0.7757126  0.0811638  -3.129  0.00175 ** 
+    ## grade3     0.1803728  1.1976637  0.0603837   2.987  0.00282 ** 
+    ## size20-50  0.1569283  1.1699117  0.0553120   2.837  0.00455 ** 
+    ## size>50    0.0016241  1.0016254  0.0856660   0.019  0.98487    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ##           exp(coef) exp(-coef) lower .95 upper .95
-    ## gradet    7.562e-03  1.322e+02 5.932e-03 9.640e-03
-    ## grade     9.078e+15  1.102e-16 1.426e+15 5.779e+16
-    ## nodest    1.003e+00  9.974e-01 1.001e+00 1.004e+00
-    ## hormon    7.451e-01  1.342e+00 6.370e-01 8.716e-01
-    ## age       1.207e+00  8.286e-01 1.170e+00 1.245e+00
-    ## aget      9.729e-01  1.028e+00 9.685e-01 9.774e-01
-    ## size20-50 1.161e+00  8.617e-01 1.040e+00 1.295e+00
-    ## size>50   1.042e+00  9.600e-01 8.811e-01 1.232e+00
-    ## meno      1.183e+00  8.451e-01 9.997e-01 1.400e+00
-    ## ert       1.000e+00  9.995e-01 1.000e+00 1.001e+00
-    ## pgrt      9.993e-01  1.001e+00 9.991e-01 9.996e-01
-    ## pgr       1.005e+00  9.953e-01 1.003e+00 1.006e+00
-    ## er        9.967e-01  1.003e+00 9.951e-01 9.982e-01
+    ## nodes        1.1363     0.8800    1.0472    1.2330
+    ## nodest       0.9847     1.0155    0.9727    0.9970
+    ## age          2.0130     0.4968    1.9605    2.0669
+    ## aget         0.9030     1.1075    0.8995    0.9064
+    ## meno         2.0160     0.4960    1.6841    2.4132
+    ## er           0.9963     1.0037    0.9948    0.9978
+    ## ert          1.0006     0.9994    1.0004    1.0008
+    ## hormon       0.7757     1.2891    0.6616    0.9095
+    ## grade3       1.1977     0.8350    1.0640    1.3481
+    ## size20-50    1.1699     0.8548    1.0497    1.3039
+    ## size>50      1.0016     0.9984    0.8468    1.1847
     ## 
-    ## Concordance= 0.981  (se = 0.001 )
-    ## Likelihood ratio test= 9863  on 13 df,   p=<2e-16
-    ## Wald test            = 2226  on 13 df,   p=<2e-16
-    ## Score (logrank) test = 7092  on 13 df,   p=<2e-16
+    ## Concordance= 0.958  (se = 0.001 )
+    ## Likelihood ratio test= 6754  on 11 df,   p=<2e-16
+    ## Wald test            = 2988  on 11 df,   p=<2e-16
+    ## Score (logrank) test = 7129  on 11 df,   p=<2e-16
+
+``` r
+summary(fit4)
+```
+
+    ## Call:
+    ## coxph(formula = Surv(rfstime, rfs) ~ age + meno + size + grade + 
+    ##     nodes + pgr + er + hormon + chemo, data = rotterdam)
+    ## 
+    ##   n= 2982, number of events= 1713 
+    ## 
+    ##                 coef  exp(coef)   se(coef)      z Pr(>|z|)    
+    ## age        3.209e-03  1.003e+00  3.283e-03  0.978   0.3283    
+    ## meno       4.724e-02  1.048e+00  8.534e-02  0.554   0.5799    
+    ## size20-50  3.582e-01  1.431e+00  5.469e-02  6.550 5.75e-11 ***
+    ## size>50    6.483e-01  1.912e+00  8.229e-02  7.878 3.33e-15 ***
+    ## grade3     3.236e-01  1.382e+00  6.030e-02  5.366 8.05e-08 ***
+    ## nodes      7.416e-02  1.077e+00  4.428e-03 16.748  < 2e-16 ***
+    ## pgr       -1.044e-04  9.999e-01  9.695e-05 -1.076   0.2817    
+    ## er        -1.611e-05  1.000e+00  9.300e-05 -0.173   0.8625    
+    ## hormon    -1.319e-01  8.765e-01  7.763e-02 -1.699   0.0894 .  
+    ## chemo     -8.705e-02  9.166e-01  6.971e-02 -1.249   0.2117    
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ##           exp(coef) exp(-coef) lower .95 upper .95
+    ## age          1.0032     0.9968    0.9968     1.010
+    ## meno         1.0484     0.9539    0.8869     1.239
+    ## size20-50    1.4308     0.6989    1.2854     1.593
+    ## size>50      1.9123     0.5229    1.6275     2.247
+    ## grade3       1.3821     0.7235    1.2280     1.555
+    ## nodes        1.0770     0.9285    1.0677     1.086
+    ## pgr          0.9999     1.0001    0.9997     1.000
+    ## er           1.0000     1.0000    0.9998     1.000
+    ## hormon       0.8765     1.1410    0.7527     1.020
+    ## chemo        0.9166     1.0910    0.7996     1.051
+    ## 
+    ## Concordance= 0.668  (se = 0.007 )
+    ## Likelihood ratio test= 490.5  on 10 df,   p=<2e-16
+    ## Wald test            = 614.4  on 10 df,   p=<2e-16
+    ## Score (logrank) test = 678.3  on 10 df,   p=<2e-16
+
+``` r
+summary(stepwise_model)
+```
+
+    ## Call:
+    ## coxph(formula = Surv(rfstime, rfs) ~ age + size + grade + nodes + 
+    ##     hormon + chemo, data = rotterdam)
+    ## 
+    ##   n= 2982, number of events= 1713 
+    ## 
+    ##                coef exp(coef)  se(coef)      z Pr(>|z|)    
+    ## age        0.004264  1.004273  0.002169  1.966   0.0493 *  
+    ## size20-50  0.360120  1.433502  0.054553  6.601 4.08e-11 ***
+    ## size>50    0.646274  1.908416  0.081949  7.886 3.11e-15 ***
+    ## grade3     0.335949  1.399267  0.059633  5.634 1.77e-08 ***
+    ## nodes      0.074610  1.077464  0.004396 16.974  < 2e-16 ***
+    ## hormon    -0.123227  0.884063  0.077213 -1.596   0.1105    
+    ## chemo     -0.098512  0.906185  0.068519 -1.438   0.1505    
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ##           exp(coef) exp(-coef) lower .95 upper .95
+    ## age          1.0043     0.9957    1.0000     1.009
+    ## size20-50    1.4335     0.6976    1.2881     1.595
+    ## size>50      1.9084     0.5240    1.6252     2.241
+    ## grade3       1.3993     0.7147    1.2449     1.573
+    ## nodes        1.0775     0.9281    1.0682     1.087
+    ## hormon       0.8841     1.1311    0.7599     1.029
+    ## chemo        0.9062     1.1035    0.7923     1.036
+    ## 
+    ## Concordance= 0.667  (se = 0.007 )
+    ## Likelihood ratio test= 488.6  on 7 df,   p=<2e-16
+    ## Wald test            = 614.2  on 7 df,   p=<2e-16
+    ## Score (logrank) test = 677.5  on 7 df,   p=<2e-16
