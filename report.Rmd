@@ -21,86 +21,443 @@ header-includes:
 - \usepackage{amsthm}
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, eval = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 options(tinytex.verbose = TRUE)
 library(knitr)
 library(tibble)
+library(survival)
+library(dplyr)
+library(ggplot2)
+library(survminer)
+library(gtsummary)
+library(kableExtra)
+library(gridExtra)
+library(survival)
+library(MASS)
+library(ggplot2)
+library(tidyverse)
+library(survminer)
+library(survival)
+library(nph)
+library("survival")
+library(StepReg)
+library(tidyverse)
+library("readxl")
+library(ggsurvfit) # for better visualization
+library(survminer)
+library(dplyr)
+library(patchwork)
+library(MASS)
 ```
 
-\newpage 
+## discription in two treatment
 
-# Abstract
+```{r eval=FALSE}
+head(rotterdam)
+Rotterdam=data.frame(survival::rotterdam)
+colSums(is.na(Rotterdam))
+stats <- Rotterdam %>% 
+  mutate(
+    treat = case_when(
+      hormon == 0 ~ "Treat = 0",
+      hormon == 1 ~ "Treat = 1"))%>% 
+  dplyr::select(-pid, -hormon, -rtime, -recur, -dtime, -death)
 
-o Briefly discuss the research problem and how this report addresses that problem.
-o If possible, mention the main results.
+stats <- stats %>% 
+  bind_rows(stats %>% 
+              mutate(treat = "Overall"))
+stats %>%
+  tbl_summary(by = treat) %>% 
+   modify_caption("**People Characteristics for Hormon Treatment**") %>%
+  bold_labels()
+```
 
-# Background and Objectives
+## summary of variables
 
-Research Question:
-How effective is hormonal treatment in improving survival rates?
+```{r eval=FALSE}
+stats2 <- Rotterdam %>% 
+  mutate(
+    treat = case_when(
+      chemo == 0 ~ "Treat = 0",
+      chemo == 1 ~ "Treat = 1"))%>% 
+  dplyr::select(-pid, -chemo, -rtime, -recur, -dtime, -death)
+stats2 <- stats2 %>% 
+  bind_rows(stats2 %>% 
+              mutate(treat = "Overall"))
+stats2 %>%
+  tbl_summary(by = treat) %>% 
+   modify_caption("**People Characteristics for Chemo Treatment**") %>%
+  bold_labels()
+```
 
-o While this section is project-dependent, remember to include enough information so
-that the reader knows what your project is about. Briefly discuss the substantive field
-citing relevant papers where applicable.
+## KM estimation
 
+```{r eval=FALSE}
+status  <- pmax(rotterdam$recur, rotterdam$death)
+rfstime <- with(rotterdam, ifelse(recur==1, rtime, dtime))
 
-# Exploratory Data Analysis
+surv_obj <- Surv(time = rfstime, event = status)
 
+km_fit1 <- survfit(surv_obj ~ 1)
+print(km_fit1)
 
-
-# Methods
-
-## Study data
-o Discuss study data in prose form. Here, you can talk about the study population, total
-sample size, the baseline characteristics, the primary outcome/endpoint, type of
-censoring etc.
-o Include well tabulated and annotated summary statistics of the baseline
-characteristics.
-o Missing data and how it was dealt with if applicable.
-
-## Statistical methods
-o Discuss primary objective(s) of the project.
-o The method used. Here, you can talk about the non-parametric, semi-parametric or
-parametric methods as applied in your report. Remember to provide some details on these methods. Mentioning them by name is inadequate. Use any reference (published
-papers, book) provided they are cited appropriately.
-o Discuss applicable assumptions. Does your model have proportional hazard
-assumption? What kind of censoring does your data have and what assumption is
-applicable here? How do you check if these assumptions are met?
-o Include relevant formulas for selected method(s) if applicable.
-
-
-\newpage
-
-# Results
-
-o Talk about the study results in prose form making sure to include appropriate tables
-and figures. No interpretation at this stage.
-o Things to consider include hazard ratio, p-values, median survival times, relevant
-confidence intervals, log-rank test(s). Remember to mention selected significance
-level (0.05, 0.01 etc).
-
-
-# Discussion 
-
-o Briefly reiterate the study population, objective(s) and the primary outcome.
-o Discuss the results as presented in previous section. Here, you can provide
-interpretation as appropriate.
-o Mention any limitations if there and how that might affect the interpretation of the
-study results.
-
-# Conlusion
-
-o Summarize the main findings and your conclusions as related to the objectives. You
-can also give recommendations if any.
-
-\newpage
-# References
+ggsurvplot(km_fit1, data=  rotterdam,                  
+           pval = TRUE,                
+           conf.int = TRUE,           
+           risk.table = TRUE,          
+           ggtheme = theme_minimal(),  
+           palette = "Dark2",         
+           main = "Kaplan-Meier Survival Curve", 
+           xlab = "Time",              
+           ylab = "Survival Probability") 
+```
 
 
-\newpage 
-# Appendix {-}
+```{r eval=FALSE}
+km_fit2 <- survfit(surv_obj ~ Rotterdam$hormon)
+print(km_fit2)
 
-o Put well organized and documented code here.
-o Any additional tables and figures
+
+ggsurvplot(km_fit2, data=  rotterdam,                  
+           pval = TRUE,                
+           conf.int = TRUE, 
+           risk.table = TRUE,
+           ggtheme = theme_minimal(),  
+           palette = "Dark2",         
+           main = "Kaplan-Meier Survival Curve", 
+           xlab = "Time",              
+           ylab = "Survival Probability") 
+ggsave(file = "K-M-estimation-part_files/KM1.jpg")
+```
+
+
+```{r eval=FALSE}
+Rotterdam$status  <- pmax(rotterdam$recur, rotterdam$death)
+Rotterdam$rfstime <- with(rotterdam, ifelse(recur==1, rtime, dtime))
+
+rotterdam_0 <- Rotterdam%>%filter(grade == "2" & size == "<=20" )
+rotterdam_1 <- Rotterdam%>%filter(grade == "3" & size == ">50" & nodes >=5)
+rotterdam_2 <- Rotterdam%>%filter(size == ">50")
+km_fit3 <- survfit(Surv(rfstime, status) ~ rotterdam_0$hormon,data = rotterdam_0)
+print(km_fit3)
+ggsurvplot(km_fit3, data=  rotterdam_0,                  
+           conf.int = TRUE,  
+           risk.table = TRUE,
+           ggtheme = theme_minimal(),  
+           palette = "Dark2",         
+           title  = "Kaplan-Meier Curve for Hormon = 0", 
+           xlab = "Time",              
+           ylab = "Survival Probability") 
+ggsave(file = "K-M-estimation-part_files/KM2.jpg")
+```
+
+
+## Log-rank test (combine both as event) comparing hormonal treatment
+```{r eval=FALSE}
+rotterdam$rfs  <- pmax(rotterdam$recur, rotterdam$death)
+rotterdam$rfstime <- with(rotterdam, ifelse(recur==1, rtime, dtime))
+surv_obj1 <- Surv(time = rfstime, event = rfs)
+log_rank_test_hormon1 <- survdiff(surv_obj1 ~ hormon, data = rotterdam)
+
+print(log_rank_test_hormon1)
+```
+
+The p-value of 0.0003 suggests that there is a statistically significant difference in survival between the two hormone treatment groups.
+The very low p-value (much less than 0.05) leads us to reject the null hypothesis of no difference in survival between the two groups.
+The result indicates that hormone treatment status (hormon) is strongly associated with differences in survival outcomes in the dataset, when considering both recurrence and death as the events of interest. Specifically, the observed number of events in each group significantly deviates from what would be expected if there were no difference in survival between the groups.
+
+## Stratified log-rank test (combine both as event) comparing hormonal treatment stratified by chemotherapy
+```{r eval=FALSE}
+stratified_log_rank_test <- survdiff(surv_obj3 ~ hormon + strata(chemo), data = rotterdam)
+
+print(stratified_log_rank_test)
+```
+
+Stratification: The test was stratified by the chemotherapy, meaning the analysis was conducted separately within each chemotherapy status group, but the overall test combines these analyses.
+
+The p-value of 0.0001 suggests that there is a statistically significant difference in survival between the two hormone treatment groups when stratified by chemotherapy status.
+The very low p-value (much less than 0.05) leads us to reject the null hypothesis of no difference in survival between the two groups within each stratum of chemotherapy status.
+This result indicates that hormone treatment status (hormon) is strongly associated with differences in the combined outcomes of recurrence and death, and this association holds true even when accounting for whether patients received chemotherapy or not.
+
+## Gehan's Wilcoxon Test
+```{r eval=FALSE}
+gehan_test <- survdiff(surv_obj1 ~ hormon, data = rotterdam, rho = 1)
+print(gehan_test)
+```
+
+
+
+## Peto & Prentice Test
+```{r eval=FALSE}
+peto_test <- survdiff(surv_obj1 ~ hormon, data = rotterdam, rho = 0)
+print(peto_test)
+```
+
+
+
+## Fleming-Harrington Test
+```{r eval=FALSE}
+# p=0, q=1
+fh_test2 <- logrank.test(rotterdam$rfstime, rotterdam$rfs, rotterdam$hormon, rho = 0,  gamma = 1)
+print(fh_test2)
+
+# p=1, q=0
+fh_test1 <- logrank.test(rotterdam$rfstime, rotterdam$rfs, rotterdam$hormon, rho = 1,  gamma = 0)
+print(fh_test1)
+```
+
+
+
+## Tarone-Ware Test
+```{r eval=FALSE}
+tarone_ware_test <- survdiff(surv_obj1 ~ hormon, data = rotterdam, rho = 0.5)
+print(tarone_ware_test)
+```
+
+
+```{r eval=FALSE}
+rfs  <- pmax(rotterdam$recur, rotterdam$death)
+rfstime <- with(rotterdam, ifelse(recur==1, rtime, dtime))
+rotterdam$tstart = c(rep(0,2982))
+surv_object <- with(rotterdam, Surv(tstart, rfstime, rfs)) #with consideration of time-varying covariates
+```
+
+
+```{r eval=FALSE}
+rotterdam$rfs  <- pmax(rotterdam$recur, rotterdam$death)
+rotterdam$rfstime <- with(rotterdam, ifelse(recur==1, rtime, dtime))
+
+hormon1 = subset(rotterdam,hormon == 1)
+hormon0 = subset(rotterdam, hormon == 0)
+unique_hormon_statuses <- unique(rotterdam$hormon)
+# Initialize an empty data frame for plotting
+plot_data <- data.frame()
+
+for(status in unique_hormon_statuses) {
+  subset_data <- rotterdam[rotterdam$hormon == status,]
+  fit <- survfit(Surv(event = rfs,time = rfstime) ~ 1, data = subset_data)
+  
+  temp_data <- data.frame(time = fit$time, surv = fit$surv, hormon_status = status)
+  temp_data$log_surv = log(temp_data$surv)
+  # Combine with the main plot data
+  plot_data <- rbind(plot_data, temp_data)
+
+} 
+
+ggplot(plot_data, aes(x=time, y=log_surv, color=factor(hormon_status))) +
+geom_line() +
+geom_point()+
+labs(title = "Log(Survival) vs. Time for Different hormon Statuses",
+x = "Time",
+y = "Log(Survival)",
+color = "hormon Status")
+```
+
+```{r eval=FALSE}
+plot_data = data.frame()
+for(status in unique_hormon_statuses) {
+subset_data <- rotterdam[rotterdam$hormon == status,]
+fit <- survfit(Surv(event = rfs, time = rfstime) ~ 1, data = subset_data)
+# Creating a dataframe for this status
+temp_data <- data.frame(time = fit$time, surv = fit$surv, hormon_status = status)
+temp_data$log_time = log(temp_data$time)
+temp_data$log_log_surv = log(-log(temp_data$surv))
+# Combine with the main plot data
+plot_data <- rbind(plot_data, temp_data)
+}
+# Plot
+ggplot(plot_data, aes(x=log_time, y=log_log_surv, color=factor(hormon_status))) +
+geom_line() +
+geom_point()+
+labs(title = "Log-Log Survival Plot for Different hormon Statuses",
+x = "Log(Time)",
+y = "Log(-Log(Survival))",
+color = "hormon Status")
+
+
+
+
+```
+
+
+```{r eval=FALSE}
+# Set up the plotting area to have 2 rows and 2 columns
+par(mfrow = c(2, 2))
+
+# Fit a basic Cox proportional hazards model
+cox_model <- coxph(Surv(rfstime, rfs) ~ age + meno + size + grade + nodes + pgr + er + hormon + chemo, data = rotterdam)
+summary(cox_model)
+# Checking the Proportional Hazards assumption
+cox.zph_model <- cox.zph(cox_model)
+
+# Extract the names of the covariates to use as plot titles
+covariate_names <- names(rotterdam[3:11])
+cox.zph_model
+# Plot Schoenfeld residuals for each covariate with a title
+for(i in 1:4){
+  plot(cox.zph_model, var = i)
+  title(main = paste("Schoenfeld Residuals for", covariate_names[i]))
+}
+ggsave(file = "cox_ph_files/Schoenfeld.jpg")
+```
+
+```{r eval=FALSE}
+# Set up the plotting area to have 2 rows and 2 columns
+par(mfrow = c(2, 3))
+
+# Fit a basic Cox proportional hazards model
+cox_model <- coxph(Surv(rfstime, rfs) ~ age + meno + size + grade + nodes + pgr + er + hormon + chemo, data = rotterdam)
+summary(cox_model)
+# Checking the Proportional Hazards assumption
+cox.zph_model <- cox.zph(cox_model)
+
+# Extract the names of the covariates to use as plot titles
+covariate_names <- names(rotterdam[3:11])
+
+# Plot Schoenfeld residuals for each covariate with a title
+for(i in 5:9){
+  plot(cox.zph_model, var = i)
+  title(main = paste("Schoenfeld Residuals for", covariate_names[i]))
+}
+ggsave(file = "cox_ph_files/Schoenfeld.jpg")
+
+
+
+```
+
+
+```{r eval=FALSE}
+categorical_vars <- c(4, 5, 6, 10, 11)
+categorical_names <- c("meno", "size", "grade", "hormon", "chemo")
+
+# Ensure 'rotterdam' is your data frame and 'surv_object' is correctly defined before this loop
+
+for (i in 1:5) {
+  col_index <- categorical_vars[i]
+  # Fit Kaplan-Meier estimator
+  fit <- survfit(surv_object ~ rotterdam[,col_index], data = rotterdam)
+  
+  # Plot using ggsurvplot
+  p <- ggsurvplot(
+    fit, 
+    data = rotterdam, 
+    fun = "cloglog",        # For complementary log-log survival function
+    ggtheme = theme_minimal(),
+    title = paste("Log-Log plot for", categorical_names[i]),
+    xlab = "Log(Time)",
+    ylab = "Log(Cumulative hazard)"
+  )
+  
+  # Print the plot
+  print(p$plot)
+}
+
+
+
+```
+
+
+## Cox Model Assumption Checking
+
+### checking if the proportional hazard assumption between two treatment groups 
+
+```{r eval=FALSE}
+# data preprocessing
+head(rotterdam)
+# liberal definition of rfs (count later deaths)
+rotterdam <- rotterdam %>% 
+  mutate(rfs = pmax(recur, death),
+         rfstime = ifelse(recur == 1, rtime, dtime),
+         grade = factor(grade)) 
+```
+
+
+```{r eval=FALSE}
+colon_survfit_log = survfit(Surv(log(rfstime + 1), rfs) ~ hormon, data = rotterdam)
+splots <- list()
+splots[[2]] <- ggsurvplot(colon_survfit_log, data = rotterdam, fun = "cloglog",
+                          risk.table = FALSE, xlab = "log(Time)", 
+                          ggtheme = theme_minimal(), xlim = c(3,10))
+splots[[2]]$plot + labs(title = "Log of Negative Log of Estimated Survival Function")
+```
+
+From the log-log graph, the lines for two treatment groups are not proportional to each other, therefore, the proportional hazard assumption violates.
+
+The line is close to a straight line with slope equal to 1, we could consider using exponential distribution.
+
+
+
+### trying stratified groups on size groups/age groups
+
+```{r eval=FALSE}
+size <- rotterdam %>% dplyr::select(size) %>% unique() %>% pull()
+plot <- list()
+for (i in 1:length(size)) {
+  data <- rotterdam[rotterdam$size == size[i], ]
+  colon_survfit_log = survfit(Surv(log(rfstime + 1), rfs) ~ hormon, data = data)
+  splots <- ggsurvplot(colon_survfit_log, data = data, fun = "cloglog",
+                          risk.table = FALSE, xlab = "log(Time)", 
+                          ggtheme = theme_minimal(), xlim = c(3,10)) + labs(title = paste("Log(-Log(S(t))) of in Size Group", size[i]))
+  plot[[i]] <- splots
+}
+arrange_ggsurvplots(plot, print = TRUE,
+  ncol = 2, nrow = 2, risk.table.height = 0.4)
+
+```
+
+### check continuous variables interaction with time (not included since assumption is not violated)
+
+```{r}
+# fit a entire cox model, find significant variables
+# er and meno, seems less significant
+fit1 <- coxph(Surv(rfstime, rfs) ~ age + meno + size + grade + nodes + pgr + er +
+                hormon + chemo, data = rotterdam)
+
+# change the data to variables with interaction with time
+# nodes become no significant, pgr and er more significant
+# except nodes, all other continuous variables have significant interaction with time
+rotterdam <- rotterdam %>% 
+  mutate(
+    aget = age * log(rfstime),
+    nodest = nodes * log(rfstime),
+    pgrt = pgr * log(rfstime), 
+    ert = er * log(rfstime)
+)
+fit2 <- coxph(Surv(rfstime, rfs) ~ age + meno + size + grade + nodes + pgr + er +
+                hormon + chemo + aget + nodest + pgrt + ert, data = rotterdam)
+```
+
+### model fitting and plots
+
+```{r eval=FALSE}
+# stepwise model
+model3 <- stepwiseCox(Surv(rfstime, rfs) ~ age + meno + size + grade + nodes + pgr + er +
+                hormon + chemo + aget + nodest + pgrt + ert, data = rotterdam, 
+            selection = "bidirection", select = "SL", method = "breslow", 
+            sle = 0.25, sls = 0.15)
+model3$`Selected Varaibles`
+fit3 <- coxph(Surv(rfstime, rfs) ~ nodes + nodest + age	+ aget + meno + er + 
+                ert + hormon + grade + size, data = rotterdam)
+```
+
+```{r eval=FALSE}
+fit4 <- coxph(Surv(rfstime, rfs) ~ age + meno + size + grade + nodes + pgr + er +
+                hormon + chemo, data = rotterdam)
+stepwise_model <- stepAIC(fit4, direction = "both", trace = FALSE)
+```
+
+
+### model fit results
+
+```{r eval=FALSE}
+summary(fit1)
+summary(fit2)
+summary(fit3)
+summary(fit4)
+summary(stepwise_model)
+```
+
+
+
 
