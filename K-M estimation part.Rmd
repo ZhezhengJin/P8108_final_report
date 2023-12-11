@@ -20,14 +20,15 @@ library(gridExtra)
 
 ```{r}
 head(rotterdam)
-Rotterdam=data.frame(rotterdam)
+Rotterdam=data.frame(survival::rotterdam)
 colSums(is.na(Rotterdam))
 stats <- Rotterdam %>% 
   mutate(
     treat = case_when(
       hormon == 0 ~ "Treat = 0",
       hormon == 1 ~ "Treat = 1"))%>% 
-  select(-pid, -hormon, -rtime, -recur, -dtime, -death)
+  dplyr::select(-pid, -hormon, -rtime, -recur, -dtime, -death)
+
 stats <- stats %>% 
   bind_rows(stats %>% 
               mutate(treat = "Overall"))
@@ -45,11 +46,11 @@ stats2 <- Rotterdam %>%
     treat = case_when(
       chemo == 0 ~ "Treat = 0",
       chemo == 1 ~ "Treat = 1"))%>% 
-  select(-pid, -chemo, -rtime, -recur, -dtime, -death)
-stats <- stats %>% 
-  bind_rows(stats %>% 
+  dplyr::select(-pid, -chemo, -rtime, -recur, -dtime, -death)
+stats2 <- stats2 %>% 
+  bind_rows(stats2 %>% 
               mutate(treat = "Overall"))
-stats %>%
+stats2 %>%
   tbl_summary(by = treat) %>% 
    modify_caption("**People Characteristics for Chemo Treatment**") %>%
   bold_labels()
@@ -58,12 +59,14 @@ stats %>%
 ## KM estimation
 
 ```{r}
-rotterdam$status  <- pmax(rotterdam$recur, rotterdam$death)
+status  <- pmax(rotterdam$recur, rotterdam$death)
 rfstime <- with(rotterdam, ifelse(recur==1, rtime, dtime))
 
 surv_obj <- Surv(time = rfstime, event = status)
 
 km_fit1 <- survfit(surv_obj ~ 1)
+print(km_fit1)
+
 ggsurvplot(km_fit1, data=  rotterdam,                  
            pval = TRUE,                
            conf.int = TRUE,           
@@ -77,38 +80,71 @@ ggsurvplot(km_fit1, data=  rotterdam,
 
 
 ```{r}
-km_fit2 <- survfit(surv_obj ~ rotterdam$hormon)
+km_fit2 <- survfit(surv_obj ~ Rotterdam$hormon)
+print(km_fit2)
 
 
 ggsurvplot(km_fit2, data=  rotterdam,                  
            pval = TRUE,                
-           conf.int = TRUE,           
-           risk.table = TRUE,          
+           conf.int = TRUE, 
+           risk.table = TRUE,
            ggtheme = theme_minimal(),  
            palette = "Dark2",         
            main = "Kaplan-Meier Survival Curve", 
            xlab = "Time",              
            ylab = "Survival Probability") 
+ggsave(file = "K-M-estimation-part_files/KM1.jpg")
+```
+
+
+```{r}
+Rotterdam$status  <- pmax(rotterdam$recur, rotterdam$death)
+Rotterdam$rfstime <- with(rotterdam, ifelse(recur==1, rtime, dtime))
+
+rotterdam_0 <- Rotterdam%>%filter(grade == "2" & size == "<=20" )
+rotterdam_1 <- Rotterdam%>%filter(grade == "3" & size == ">50" & nodes >=5)
+rotterdam_2 <- Rotterdam%>%filter(size == ">50")
+km_fit3 <- survfit(Surv(rfstime, status) ~ rotterdam_0$hormon,data = rotterdam_0)
+print(km_fit3)
+
+km_fit4 <- survfit(Surv(rfstime, status) ~ rotterdam_1$hormon, data = rotterdam_1)
+print(km_fit4)
+ggsurvplot(km_fit4, data=  rotterdam_1,                  
+           pval = TRUE,                
+           conf.int = TRUE, 
+           risk.table = TRUE,
+           ggtheme = theme_minimal(),  
+           palette = "Dark2",         
+           title = "K-M Survival Curve for patients with grade 3 & size > 50 and # of nodes > 5", 
+           xlab = "Time",              
+           ylab = "Survival Probability") 
+
+km_fit5 <- survfit(Surv(rfstime, status) ~ rotterdam_2$hormon, data = rotterdam_2)
+print(km_fit5)
+```
+
+```{r}
+par(mfrow = c(1,2))
+ggsurvplot(km_fit3, data=  rotterdam_0,                  
+           conf.int = TRUE,  
+           risk.table = TRUE,
+           ggtheme = theme_minimal(),  
+           palette = "Dark2",         
+           title  = "Kaplan-Meier Curve for Hormon = 0", 
+           xlab = "Time",              
+           ylab = "Survival Probability") 
+ggsave(file = "K-M-estimation-part_files/KM2.jpg")
+
+ggsurvplot(km_fit4, data=  rotterdam_1,                  
+           pval = TRUE,                
+           conf.int = TRUE,
+           ggtheme = theme_minimal(),  
+           palette = "Dark2",         
+           title = "Kaplan-Meier Curve for hormon = 1", 
+           xlab = "Time",              
+           ylab = "Survival Probability") 
+ggsave(file = "K-M-estimation-part_files/KM3.jpg")
 ```
 
 The total number of subjects observed was 1546, among which 1080 experienced the event of interest
 We can see from the Chisq and p-values here suggest that the non-linear relationships of these variables are significant. 
-
-
-```{r}
-rotterdam$censored_status <- ifelse(status == 1, 0, 1)  # Assuming '1' in status indicates the event
-surv_fit <- survfit(Surv(rfstime, status) ~ censored_status, data = rotterdam)
-ggsurvplot(
-  surv_fit, 
-  data = rotterdam,
-  pval = TRUE,                   # 显示 P 值
-  risk.table = TRUE,             # 显示风险表
-  linetype = "strata",           # 不同分层使用不同的线型
-  ggtheme = theme_minimal(),     # 使用简洁主题
-  palette = c("#00BA38", "#F8766D"), # 定制颜色
-  legend.title = "Status",
-  legend.labs = c("Uncensored", "Censored"),
-  xlab = "Time",
-  ylab = "Survival Probability"
-)
-```
