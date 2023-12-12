@@ -12,8 +12,8 @@ library(nph)
 
 ## Log-rank test (combine both as event) comparing hormonal treatment
 ```{r}
-rotterdam$rfs  <- pmax(rotterdam$recur, rotterdam$death)
-rotterdam$rfstime <- with(rotterdam, ifelse(recur==1, rtime, dtime))
+rfs  <- pmax(rotterdam$recur, rotterdam$death)
+rfstime <- with(rotterdam, ifelse(recur==1, rtime, dtime))
 surv_obj1 <- Surv(time = rfstime, event = rfs)
 log_rank_test_hormon1 <- survdiff(surv_obj1 ~ hormon, data = rotterdam)
 
